@@ -67,7 +67,6 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     Segment26,
-    StarBlock,
     TorchVision,
     WorldDetect,
     YOLOEDetect,

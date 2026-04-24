@@ -40,9 +40,9 @@ TRAIN_ARGS = dict(
 
 for version, config in MODELS.items():
     name = f"building_detect_{version}"
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"开始训练: {version} (模型: {config['model']}, 类型: {config['type']}, 项目名: {name})")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
     model = YOLO(config["model"])
     model.train(name=name, **TRAIN_ARGS)
     print(f"\n{version} 训练完成! 结果保存在: {PROJECT}/{name}/")
