@@ -13,6 +13,10 @@ MODELS = {
         "model": "/home/fumu/PycharmProjects/ultralytics-main/ultralytics/cfg/models/v8/yolov8-star.yaml",
         "type": "scratch",
     },
+    "YOLO11Star": {
+        "model": "/home/fumu/PycharmProjects/ultralytics-main/ultralytics/cfg/models/11/yolo11-star.yaml",
+        "type": "scratch",
+    },
 }
 
 DATA = "/home/fumu/PycharmProjects/building_dataset/data.yaml"

@@ -40,6 +40,7 @@ __all__ = (
     "C2fStar",
     "C3Ghost",
     "C3k2",
+    "C3k2Star",
     "C3x",
     "CBFuse",
     "CBLinear",
@@ -1161,6 +1162,26 @@ class C3k2(C2f):
             else C3k(self.c, self.c, 2, shortcut, g)
             if c3k
             else Bottleneck(self.c, self.c, shortcut, g)
+            for _ in range(n)
+        )
+
+
+class C3k2Star(C2f):
+    """C3k2 module with StarBlock replacing Bottleneck/C3k sub-blocks."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        g: int = 1,
+        shortcut: bool = True,
+    ):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        self.m = nn.ModuleList(
+            C3k(self.c, self.c, 2, shortcut, g) if c3k else StarBlock(self.c, self.c)
             for _ in range(n)
         )
 
