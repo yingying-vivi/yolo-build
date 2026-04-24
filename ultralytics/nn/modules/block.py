@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from timm.layers import DropPath
+
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
@@ -35,6 +37,7 @@ __all__ = (
     "C2fAttn",
     "C2fCIB",
     "C2fPSA",
+    "C2fStar",
     "C3Ghost",
     "C3k2",
     "C3x",
@@ -51,6 +54,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "StarBlock",
     "TorchVision",
 )
 
@@ -313,6 +317,61 @@ class C2f(nn.Module):
 
     def forward_split(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass using split() instead of chunk()."""
+        y = self.cv1(x).split((self.c, self.c), 1)
+        y = [y[0], y[1]]
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class StarBlock(nn.Module):
+    """StarNet Block from 'Rewrite the Stars' (https://arxiv.org/pdf/2403.19967).
+
+    Element-wise multiplication of two branch features with ReLU6 activation,
+    followed by depthwise conv and 1x1 projection.
+    """
+
+    def __init__(self, c1: int, c2: int, mlp_ratio: int = 3, drop_path: float = 0.0):
+        super().__init__()
+        hidden = mlp_ratio * c1
+        self.dwconv1 = nn.Sequential(
+            nn.Conv2d(c1, c1, 7, 1, 3, groups=c1, bias=False),
+            nn.BatchNorm2d(c1),
+        )
+        self.f1 = nn.Sequential(nn.Conv2d(c1, hidden, 1, bias=False), nn.BatchNorm2d(hidden))
+        self.f2 = nn.Sequential(nn.Conv2d(c1, hidden, 1, bias=False), nn.BatchNorm2d(hidden))
+        self.g = nn.Sequential(nn.Conv2d(hidden, c2, 1, bias=False), nn.BatchNorm2d(c2))
+        self.dwconv2 = nn.Sequential(
+            nn.Conv2d(c2, c2, 7, 1, 3, groups=c2, bias=False),
+            nn.BatchNorm2d(c2),
+        )
+        self.act = nn.ReLU6()
+        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        input = x
+        x = self.dwconv1(x)
+        x1, x2 = self.f1(x), self.f2(x)
+        x = self.act(x1) * x2
+        x = self.dwconv2(self.g(x))
+        return input + self.drop_path(x)
+
+
+class C2fStar(nn.Module):
+    """C2f module with StarBlock replacing Bottleneck for feature extraction."""
+
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, e: float = 0.5):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(StarBlock(self.c, self.c) for _ in range(n))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
         y = self.cv1(x).split((self.c, self.c), 1)
         y = [y[0], y[1]]
         y.extend(m(y[-1]) for m in self.m)

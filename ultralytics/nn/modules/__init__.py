@@ -41,6 +41,7 @@ from .block import (
     C2fAttn,
     C2fCIB,
     C2fPSA,
+    C2fStar,
     C3Ghost,
     C3k2,
     C3x,
@@ -58,6 +59,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    StarBlock,
     TorchVision,
 )
 from .conv import (
@@ -135,6 +137,7 @@ __all__ = (
     "C2fAttn",
     "C2fCIB",
     "C2fPSA",
+    "C2fStar",
     "C3Ghost",
     "C3k2",
     "C3x",
@@ -178,6 +181,7 @@ __all__ = (
     "Segment",
     "Segment26",
     "SpatialAttention",
+    "StarBlock",
     "TorchVision",
     "TransformerBlock",
     "TransformerEncoderLayer",

@@ -1,8 +1,18 @@
 from ultralytics import YOLO
 
 MODELS = {
-    "YOLOv8": "yolov8n.pt",
-    "YOLO26": "yolo26n.pt",
+    "YOLOv8": {
+        "model": "yolov8n.pt",
+        "type": "pretrained",
+    },
+    "YOLO26": {
+        "model": "yolo26n.pt",
+        "type": "pretrained",
+    },
+    "YOLOv8Star": {
+        "model": "/home/fumu/PycharmProjects/ultralytics-main/ultralytics/cfg/models/v8/yolov8-star.yaml",
+        "type": "scratch",
+    },
 }
 
 DATA = "/home/fumu/PycharmProjects/building_dataset/data.yaml"
@@ -28,11 +38,11 @@ TRAIN_ARGS = dict(
     scale=0.5,
 )
 
-for version, weights in MODELS.items():
+for version, config in MODELS.items():
     name = f"building_detect_{version}"
     print(f"\n{'='*60}")
-    print(f"开始训练: {version} (权重: {weights}, 项目名: {name})")
+    print(f"开始训练: {version} (模型: {config['model']}, 类型: {config['type']}, 项目名: {name})")
     print(f"{'='*60}\n")
-    model = YOLO(weights)
+    model = YOLO(config["model"])
     model.train(name=name, **TRAIN_ARGS)
     print(f"\n{version} 训练完成! 结果保存在: {PROJECT}/{name}/")

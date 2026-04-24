@@ -12,6 +12,7 @@ CONF_THRESHOLD = 0.5
 MODELS = {
     "YOLOv8": os.path.join(PROJECT, "runs/building_detect_YOLOv8/weights/best.pt"),
     "YOLO26": os.path.join(PROJECT, "runs/building_detect_YOLO26/weights/best.pt"),
+    "YOLOv8Star": os.path.join(PROJECT, "runs/building_detect_YOLOv8Star/weights/best.pt"),
 }
 
 PAIRS = [
