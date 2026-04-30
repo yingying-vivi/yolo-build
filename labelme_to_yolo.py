@@ -4,12 +4,11 @@ import re
 import random
 import shutil
 from pathlib import Path
-SRC_DIR = Path("/home/fumu/PycharmProjects/无人机分割数据集")
-DST_DIR = Path("/home/fumu/PycharmProjects/building_dataset")
+SRC_DIR = Path("/home/fumu/datasets/无人机分割数据集")
+DST_DIR = Path("/home/fumu/datasets/drone_seg_dataset")
 TRAIN_RATIO = 0.8
 CLASS_MAP = {
     "building": 0,
-    "car": 1,
 }
 def get_time_group(filename):
     name = filename.replace(".json", "")
@@ -25,22 +24,6 @@ def get_time_group(filename):
     if m3:
         return f"other_{m3.group(1)}"
     return "other"
-def polygon_to_bbox(points, img_w, img_h):
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-    x_min = min(xs)
-    x_max = max(xs)
-    y_min = min(ys)
-    y_max = max(ys)
-    cx = (x_min + x_max) / 2.0 / img_w
-    cy = (y_min + y_max) / 2.0 / img_h
-    w = (x_max - x_min) / img_w
-    h = (y_max - y_min) / img_h
-    cx = max(0, min(1, cx))
-    cy = max(0, min(1, cy))
-    w = max(0, min(1, w))
-    h = max(0, min(1, h))
-    return cx, cy, w, h
 def convert_one(json_path):
     data = json.load(open(json_path, "r"))
     img_w = data["imageWidth"]
@@ -51,8 +34,14 @@ def convert_one(json_path):
         if label not in CLASS_MAP:
             continue
         cls_id = CLASS_MAP[label]
-        cx, cy, w, h = polygon_to_bbox(shape["points"], img_w, img_h)
-        lines.append(f"{cls_id} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
+        points = shape["points"]
+        coords = []
+        for p in points:
+            x = max(0.0, min(1.0, p[0] / img_w))
+            y = max(0.0, min(1.0, p[1] / img_h))
+            coords.append(f"{x:.6f} {y:.6f}")
+        if len(coords) >= 3:
+            lines.append(f"{cls_id} " + " ".join(coords))
     return lines
 def find_image(json_path):
     jf = json_path.name
