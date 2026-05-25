@@ -6,7 +6,6 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from timm.layers import DropPath
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
@@ -327,8 +326,8 @@ class C2f(nn.Module):
 class StarBlock(nn.Module):
     """StarNet Block from 'Rewrite the Stars' (https://arxiv.org/pdf/2403.19967).
 
-    Element-wise multiplication of two branch features with ReLU6 activation,
-    followed by depthwise conv and 1x1 projection.
+    Element-wise multiplication of two branch features with ReLU6 activation, followed by depthwise conv and 1x1
+    projection.
     """
 
     def __init__(self, c1: int, c2: int, mlp_ratio: int = 3, drop_path: float = 0.0):
@@ -346,7 +345,7 @@ class StarBlock(nn.Module):
             nn.BatchNorm2d(c2),
         )
         self.act = nn.ReLU6()
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         input = x
@@ -1181,8 +1180,7 @@ class C3k2Star(C2f):
     ):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
-            C3k(self.c, self.c, 2, shortcut, g) if c3k else StarBlock(self.c, self.c)
-            for _ in range(n)
+            C3k(self.c, self.c, 2, shortcut, g) if c3k else StarBlock(self.c, self.c) for _ in range(n)
         )
 
 
