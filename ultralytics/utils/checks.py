@@ -342,6 +342,9 @@ def check_font(font="Arial.ttf"):
 
     # Download to USER_CONFIG_DIR if missing
     url = f"{ASSETS_URL}/{name}"
+    if not ONLINE:
+        LOGGER.warning(f"离线模式，跳过字体下载: {name}")
+        return font
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file

@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "id": "building_seg_v5",
+      "name": "YOLO11n-seg v5 违建检测",
+      "yolo_path": "runs/building_seg_v5/weights/best.pt",
+      "type": "yolo_seg",
+      "classes": [0, 1, 2, 3, 4],
+      "description": "YOLO11n-seg v5 5类建筑分割模型（residential/steel_roof/large_complex/glass_roof/under_construction）"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+flask>=2.3.0
+flask-cors>=4.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+ultralytics>=8.0.0
+GDAL>=3.0
+tifffile>=2023.1.0

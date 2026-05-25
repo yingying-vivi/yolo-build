@@ -1,18 +1,14 @@
 from ultralytics import YOLO
 
-MODELS = {
-    "YOLO11n-seg": {
-        "model": "yolo11n-seg.pt",
-        "type": "pretrained",
-    },
-}
-
-DATA = "/home/fumu/datasets/drone_seg.yaml"
+MODEL_WEIGHTS = "yolo11n-seg.pt"
+DATA = "/home/fumu/datadisk/building_seg_v5/data.yaml"
 PROJECT = "/home/fumu/PycharmProjects/ultralytics-main/runs"
-EPOCHS = 200
+EXPERIMENT_NAME = "building_seg_v5"
+
+EPOCHS = 100
 IMGSZ = 640
 BATCH = 16
-PATIENCE = 20
+PATIENCE = 50
 
 TRAIN_ARGS = dict(
     data=DATA,
@@ -20,21 +16,20 @@ TRAIN_ARGS = dict(
     imgsz=IMGSZ,
     batch=BATCH,
     project=PROJECT,
+    name=EXPERIMENT_NAME,
     patience=PATIENCE,
     lr0=0.01,
-    augment=True,
-    mosaic=1.0,
-    mixup=0.1,
-    fliplr=0.5,
-    flipud=0.5,
-    scale=0.5,
+    overlap_mask=True,
+    mask_ratio=4,
 )
 
-for version, config in MODELS.items():
-    name = f"building_seg_{version}"
+if __name__ == "__main__":
     print(f"\n{'='*60}")
-    print(f"开始训练: {version} (模型: {config['model']}, 类型: {config['type']}, 项目名: {name})")
+    print(f"YOLO11n-seg | 5类(building细分) | 标注区域划分 | imgsz={IMGSZ}")
+    print(f"epochs={EPOCHS}, batch={BATCH}")
     print(f"{'='*60}\n")
-    model = YOLO(config["model"])
-    model.train(name=name, **TRAIN_ARGS)
-    print(f"\n{version} 训练完成! 结果保存在: {PROJECT}/{name}/")
+
+    model = YOLO(MODEL_WEIGHTS)
+    model.train(**TRAIN_ARGS)
+
+    print(f"\nbest.pt: {PROJECT}/{EXPERIMENT_NAME}/weights/best.pt")

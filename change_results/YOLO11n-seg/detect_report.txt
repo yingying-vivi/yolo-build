@@ -1,0 +1,204 @@
+
+============================================================
+使用模型: YOLO11n-seg  权重: /home/fumu/PycharmProjects/ultralytics-main/runs/segment/train-3/weights/best.pt
+输出目录: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg
+============================================================
+
+  [YOLO11n-seg] 对比: 2月-乃琼-11 vs 7月-乃琼-11
+    A期检测: 17 建筑物
+    B期检测: 21 建筑物
+    匹配(两期均有): 16
+    新增: 5
+    消失(A有B无): 1
+      新增建筑: building conf=0.649 bbox=[485.3, 911.0, 516.0, 948.7]
+      新增建筑: building conf=0.632 bbox=[473.3, 925.0, 493.4, 952.4]
+      新增建筑: building conf=0.63 bbox=[500.9, 973.0, 536.4, 1023.4]
+      新增建筑: building conf=0.544 bbox=[442.3, 902.7, 463.1, 922.1]
+      新增建筑: building conf=0.521 bbox=[474.3, 918.8, 496.0, 951.0]
+      消失建筑: building conf=0.519 bbox=[406.5, 885.6, 444.4, 912.3]
+      匹配建筑: building -> building bbox_iou=0.887 mask_iou=0.995 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.984 mask_iou=0.922 中心距离=2.4
+      匹配建筑: building -> building bbox_iou=0.885 mask_iou=0.965 中心距离=2.6
+      匹配建筑: building -> building bbox_iou=0.962 mask_iou=0.836 中心距离=1.1
+      匹配建筑: building -> building bbox_iou=0.927 mask_iou=0.961 中心距离=1.7
+      匹配建筑: building -> building bbox_iou=0.952 mask_iou=0.879 中心距离=0.4
+      匹配建筑: building -> building bbox_iou=0.943 mask_iou=0.885 中心距离=1.3
+      匹配建筑: building -> building bbox_iou=0.939 mask_iou=0.926 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.89 mask_iou=0.922 中心距离=2.1
+      匹配建筑: building -> building bbox_iou=0.904 mask_iou=0.877 中心距离=2.4
+      匹配建筑: building -> building bbox_iou=0.898 mask_iou=0.795 中心距离=1.3
+      匹配建筑: building -> building bbox_iou=0.894 mask_iou=0.763 中心距离=1.9
+      匹配建筑: building -> building bbox_iou=0.887 mask_iou=0.867 中心距离=1.1
+      匹配建筑: building -> building bbox_iou=0.878 mask_iou=0.882 中心距离=0.6
+      匹配建筑: building -> building bbox_iou=0.861 mask_iou=0.798 中心距离=3.3
+      匹配建筑: building -> building bbox_iou=0.581 mask_iou=0.501 中心距离=5.7
+    保存: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg/2月-乃琼-11--7月-乃琼-11.png
+
+  [YOLO11n-seg] 对比: 2月-乃琼-10 vs 7月-乃琼-10
+    A期检测: 28 建筑物
+    B期检测: 26 建筑物
+    匹配(两期均有): 21
+    新增: 5
+    消失(A有B无): 7
+      新增建筑: building conf=0.901 bbox=[733.1, 0.0, 807.1, 109.1]
+      新增建筑: building conf=0.887 bbox=[450.2, 625.7, 750.7, 927.7]
+      新增建筑: building conf=0.845 bbox=[662.6, 1.8, 737.6, 43.4]
+      新增建筑: building conf=0.76 bbox=[0.0, 81.4, 69.3, 191.0]
+      新增建筑: building conf=0.72 bbox=[740.2, 192.1, 906.4, 262.5]
+      消失建筑: building conf=0.779 bbox=[671.6, 907.7, 779.8, 1023.3]
+      消失建筑: building conf=0.758 bbox=[400.8, 784.1, 520.4, 873.3]
+      消失建筑: building conf=0.715 bbox=[627.9, 753.0, 754.5, 928.0]
+      消失建筑: building conf=0.69 bbox=[454.6, 987.4, 648.9, 1023.7]
+      消失建筑: building conf=0.666 bbox=[0.0, 467.8, 301.0, 624.9]
+      消失建筑: building conf=0.637 bbox=[726.8, 887.9, 812.1, 1023.5]
+      消失建筑: building conf=0.595 bbox=[452.5, 622.7, 627.1, 748.3]
+      匹配建筑: building -> building bbox_iou=0.992 mask_iou=0.977 中心距离=0.5
+      匹配建筑: building -> building bbox_iou=0.989 mask_iou=0.823 中心距离=1.7
+      匹配建筑: building -> building bbox_iou=0.987 mask_iou=0.942 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.98 mask_iou=0.857 中心距离=2.4
+      匹配建筑: building -> building bbox_iou=0.974 mask_iou=0.941 中心距离=1.2
+      匹配建筑: building -> building bbox_iou=0.972 mask_iou=0.941 中心距离=1.7
+      匹配建筑: building -> building bbox_iou=0.968 mask_iou=0.949 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.965 mask_iou=0.951 中心距离=0.4
+      匹配建筑: building -> building bbox_iou=0.965 mask_iou=0.885 中心距离=1.9
+      匹配建筑: building -> building bbox_iou=0.964 mask_iou=0.95 中心距离=3.3
+      匹配建筑: building -> building bbox_iou=0.963 mask_iou=0.924 中心距离=1.9
+      匹配建筑: building -> building bbox_iou=0.953 mask_iou=0.902 中心距离=0.4
+      匹配建筑: building -> building bbox_iou=0.953 mask_iou=0.949 中心距离=1.4
+      匹配建筑: building -> building bbox_iou=0.945 mask_iou=0.929 中心距离=2.2
+      匹配建筑: building -> building bbox_iou=0.94 mask_iou=0.942 中心距离=2.8
+      匹配建筑: building -> building bbox_iou=0.886 mask_iou=0.928 中心距离=4.3
+      匹配建筑: building -> building bbox_iou=0.913 mask_iou=0.902 中心距离=1.6
+      匹配建筑: building -> building bbox_iou=0.881 mask_iou=0.74 中心距离=3.7
+      匹配建筑: building -> building bbox_iou=0.879 mask_iou=0.798 中心距离=10.3
+      匹配建筑: building -> building bbox_iou=0.842 mask_iou=0.837 中心距离=2.6
+      匹配建筑: building -> building bbox_iou=0.484 mask_iou=0.582 中心距离=57.2
+    保存: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg/2月-乃琼-10--7月-乃琼-10.png
+
+  [YOLO11n-seg] 对比: 2月-乃琼-0 vs 7月-乃琼-0
+    A期检测: 21 建筑物
+    B期检测: 24 建筑物
+    匹配(两期均有): 17
+    新增: 7
+    消失(A有B无): 4
+      新增建筑: building conf=0.88 bbox=[290.7, 889.4, 373.9, 925.1]
+      新增建筑: building conf=0.715 bbox=[443.6, 0.1, 505.0, 29.1]
+      新增建筑: building conf=0.7 bbox=[880.4, 420.3, 919.7, 437.0]
+      新增建筑: building conf=0.684 bbox=[787.2, 422.1, 827.3, 437.5]
+      新增建筑: building conf=0.617 bbox=[232.9, 897.4, 288.9, 926.6]
+      新增建筑: building conf=0.55 bbox=[475.0, 0.1, 578.8, 82.6]
+      新增建筑: building conf=0.511 bbox=[261.9, 809.4, 288.0, 891.3]
+      消失建筑: building conf=0.846 bbox=[0.6, 44.6, 117.6, 150.1]
+      消失建筑: building conf=0.761 bbox=[796.1, 113.9, 1023.9, 376.6]
+      消失建筑: building conf=0.543 bbox=[598.0, 943.7, 626.5, 970.2]
+      消失建筑: building conf=0.502 bbox=[323.6, 977.9, 365.4, 997.9]
+      匹配建筑: building -> building bbox_iou=0.97 mask_iou=1.0 中心距离=1.4
+      匹配建筑: building -> building bbox_iou=0.881 mask_iou=1.0 中心距离=1.6
+      匹配建筑: building -> building bbox_iou=0.953 mask_iou=0.985 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.967 mask_iou=0.924 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.964 mask_iou=0.967 中心距离=3.1
+      匹配建筑: building -> building bbox_iou=0.958 mask_iou=0.948 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.952 mask_iou=0.906 中心距离=1.4
+      匹配建筑: building -> building bbox_iou=0.94 mask_iou=0.928 中心距离=1.3
+      匹配建筑: building -> building bbox_iou=0.92 mask_iou=0.884 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.911 mask_iou=0.885 中心距离=2.1
+      匹配建筑: building -> building bbox_iou=0.91 mask_iou=0.126 中心距离=6.0
+      匹配建筑: building -> building bbox_iou=0.907 mask_iou=0.893 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.899 mask_iou=0.87 中心距离=3.3
+      匹配建筑: building -> building bbox_iou=0.797 mask_iou=0.41 中心距离=13.8
+      匹配建筑: building -> building bbox_iou=0.794 mask_iou=0.725 中心距离=4.6
+      匹配建筑: building -> building bbox_iou=0.446 mask_iou=0.705 中心距离=62.5
+      匹配建筑: building -> building bbox_iou=0.463 mask_iou=0.488 中心距离=58.9
+    保存: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg/2月-乃琼-0--7月-乃琼-0.png
+
+  [YOLO11n-seg] 对比: 2月-乃琼-1 vs 7月-乃琼-1
+    A期检测: 15 建筑物
+    B期检测: 21 建筑物
+    匹配(两期均有): 13
+    新增: 8
+    消失(A有B无): 2
+      新增建筑: building conf=0.939 bbox=[497.0, 819.5, 537.3, 880.8]
+      新增建筑: building conf=0.938 bbox=[0.0, 265.9, 108.5, 419.1]
+      新增建筑: building conf=0.93 bbox=[816.7, 329.1, 886.2, 467.4]
+      新增建筑: building conf=0.898 bbox=[535.2, 639.7, 615.3, 774.4]
+      新增建筑: building conf=0.872 bbox=[747.9, 0.3, 1024.0, 113.4]
+      新增建筑: building conf=0.837 bbox=[451.3, 819.6, 493.8, 897.9]
+      新增建筑: building conf=0.826 bbox=[413.1, 819.4, 453.1, 882.1]
+      新增建筑: building conf=0.537 bbox=[535.3, 819.0, 558.3, 877.9]
+      消失建筑: building conf=0.923 bbox=[811.4, 298.2, 1023.4, 495.0]
+      消失建筑: building conf=0.727 bbox=[0.0, 1.1, 299.2, 440.6]
+      匹配建筑: building -> building bbox_iou=0.935 mask_iou=1.0 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.982 mask_iou=0.912 中心距离=2.6
+      匹配建筑: building -> building bbox_iou=0.915 mask_iou=0.964 中心距离=0.7
+      匹配建筑: building -> building bbox_iou=0.954 mask_iou=0.916 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.953 mask_iou=0.951 中心距离=4.3
+      匹配建筑: building -> building bbox_iou=0.926 mask_iou=0.901 中心距离=2.1
+      匹配建筑: building -> building bbox_iou=0.709 mask_iou=0.879 中心距离=3.9
+      匹配建筑: building -> building bbox_iou=0.863 mask_iou=0.878 中心距离=1.2
+      匹配建筑: building -> building bbox_iou=0.813 mask_iou=0.611 中心距离=9.9
+      匹配建筑: building -> building bbox_iou=0.581 mask_iou=0.601 中心距离=42.0
+      匹配建筑: building -> building bbox_iou=0.504 mask_iou=0.491 中心距离=62.3
+      匹配建筑: building -> building bbox_iou=0.419 mask_iou=0.428 中心距离=64.6
+      匹配建筑: building -> building bbox_iou=0.288 mask_iou=0.365 中心距离=73.4
+    保存: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg/2月-乃琼-1--7月-乃琼-1.png
+
+  [YOLO11n-seg] 对比: 2月-乃琼-8 vs 7月-乃琼-8
+    A期检测: 50 建筑物
+    B期检测: 37 建筑物
+    匹配(两期均有): 34
+    新增: 3
+    消失(A有B无): 16
+      新增建筑: building conf=0.701 bbox=[999.1, 993.9, 1024.0, 1023.6]
+      新增建筑: building conf=0.634 bbox=[38.8, 786.2, 148.5, 830.3]
+      新增建筑: building conf=0.516 bbox=[726.0, 882.9, 806.0, 920.4]
+      消失建筑: building conf=0.892 bbox=[99.9, 624.4, 158.9, 669.2]
+      消失建筑: building conf=0.782 bbox=[26.9, 319.5, 110.0, 365.0]
+      消失建筑: building conf=0.742 bbox=[3.0, 1.1, 69.0, 87.7]
+      消失建筑: building conf=0.729 bbox=[707.0, 277.0, 909.9, 377.1]
+      消失建筑: building conf=0.722 bbox=[890.4, 255.4, 919.7, 286.0]
+      消失建筑: building conf=0.721 bbox=[445.2, 404.7, 590.3, 472.1]
+      消失建筑: building conf=0.713 bbox=[996.3, 212.9, 1023.7, 230.9]
+      消失建筑: building conf=0.708 bbox=[994.6, 328.7, 1023.3, 361.7]
+      消失建筑: building conf=0.663 bbox=[760.7, 0.1, 880.1, 26.8]
+      消失建筑: building conf=0.639 bbox=[833.6, 512.9, 848.5, 534.8]
+      消失建筑: building conf=0.637 bbox=[572.6, 246.1, 633.3, 297.4]
+      消失建筑: building conf=0.557 bbox=[637.9, 849.1, 656.5, 875.9]
+      消失建筑: building conf=0.553 bbox=[402.0, 996.6, 449.3, 1023.5]
+      消失建筑: building conf=0.549 bbox=[257.6, 160.9, 303.2, 213.7]
+      消失建筑: building conf=0.547 bbox=[976.9, 253.0, 1023.4, 283.8]
+      消失建筑: building conf=0.507 bbox=[114.6, 1008.1, 168.6, 1023.6]
+      匹配建筑: building -> building bbox_iou=0.948 mask_iou=0.987 中心距离=0.5
+      匹配建筑: building -> building bbox_iou=0.977 mask_iou=0.983 中心距离=1.1
+      匹配建筑: building -> building bbox_iou=0.976 mask_iou=0.914 中心距离=0.7
+      匹配建筑: building -> building bbox_iou=0.958 mask_iou=0.973 中心距离=2.8
+      匹配建筑: building -> building bbox_iou=0.971 mask_iou=0.919 中心距离=1.2
+      匹配建筑: building -> building bbox_iou=0.97 mask_iou=0.952 中心距离=0.7
+      匹配建筑: building -> building bbox_iou=0.911 mask_iou=0.962 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.961 mask_iou=0.952 中心距离=0.1
+      匹配建筑: building -> building bbox_iou=0.952 mask_iou=0.959 中心距离=0.6
+      匹配建筑: building -> building bbox_iou=0.957 mask_iou=0.813 中心距离=1.5
+      匹配建筑: building -> building bbox_iou=0.956 mask_iou=0.773 中心距离=0.5
+      匹配建筑: building -> building bbox_iou=0.952 mask_iou=0.817 中心距离=1.9
+      匹配建筑: building -> building bbox_iou=0.95 mask_iou=0.926 中心距离=2.2
+      匹配建筑: building -> building bbox_iou=0.944 mask_iou=0.883 中心距离=2.5
+      匹配建筑: building -> building bbox_iou=0.937 mask_iou=0.921 中心距离=2.2
+      匹配建筑: building -> building bbox_iou=0.907 mask_iou=0.928 中心距离=3.2
+      匹配建筑: building -> building bbox_iou=0.925 mask_iou=0.806 中心距离=2.0
+      匹配建筑: building -> building bbox_iou=0.924 mask_iou=0.825 中心距离=0.9
+      匹配建筑: building -> building bbox_iou=0.919 mask_iou=0.867 中心距离=1.4
+      匹配建筑: building -> building bbox_iou=0.916 mask_iou=0.829 中心距离=4.9
+      匹配建筑: building -> building bbox_iou=0.914 mask_iou=0.644 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.906 mask_iou=0.907 中心距离=2.1
+      匹配建筑: building -> building bbox_iou=0.843 mask_iou=0.899 中心距离=2.3
+      匹配建筑: building -> building bbox_iou=0.894 mask_iou=0.851 中心距离=4.1
+      匹配建筑: building -> building bbox_iou=0.891 mask_iou=0.734 中心距离=0.8
+      匹配建筑: building -> building bbox_iou=0.876 mask_iou=0.867 中心距离=2.9
+      匹配建筑: building -> building bbox_iou=0.872 mask_iou=0.751 中心距离=4.4
+      匹配建筑: building -> building bbox_iou=0.815 mask_iou=0.855 中心距离=5.8
+      匹配建筑: building -> building bbox_iou=0.821 mask_iou=0.607 中心距离=10.1
+      匹配建筑: building -> building bbox_iou=0.788 mask_iou=0.73 中心距离=3.1
+      匹配建筑: building -> building bbox_iou=0.699 mask_iou=0.743 中心距离=10.2
+      匹配建筑: building -> building bbox_iou=0.703 mask_iou=0.602 中心距离=6.6
+      匹配建筑: building -> building bbox_iou=0.45 mask_iou=0.548 中心距离=54.4
+      匹配建筑: building -> building bbox_iou=0.209 mask_iou=0.379 中心距离=170.8
+    保存: /home/fumu/PycharmProjects/ultralytics-main/change_results/YOLO11n-seg/2月-乃琼-8--7月-乃琼-8.png

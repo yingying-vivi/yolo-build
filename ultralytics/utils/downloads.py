@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -64,6 +65,8 @@ def is_url(url: str | Path, check: bool = False) -> bool:
         if not (result.scheme and result.netloc):
             return False
         if check:
+            if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
+                return True
             r = request.urlopen(request.Request(url, method="HEAD"), timeout=3)
             return 200 <= r.getcode() < 400
         return True
@@ -453,7 +456,7 @@ def attempt_download_asset(
     Examples:
         >>> file_path = attempt_download_asset("yolo26n.pt", repo="ultralytics/assets", release="latest")
     """
-    from ultralytics.utils import SETTINGS  # scoped for circular import
+    from ultralytics.utils import ONLINE, SETTINGS  # scoped for circular import
 
     # YOLOv3/5u updates
     file = str(file)
@@ -463,6 +466,9 @@ def attempt_download_asset(
         return str(file)
     elif (SETTINGS["weights_dir"] / file).exists():
         return str(SETTINGS["weights_dir"] / file)
+    elif not ONLINE:
+        LOGGER.warning(f"离线模式，无法下载模型文件: {file}，请确保模型文件已存在本地")
+        raise FileNotFoundError(f"离线模式无法下载 {file}，请手动将模型文件放到项目目录下")
     else:
         # URL specified
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.

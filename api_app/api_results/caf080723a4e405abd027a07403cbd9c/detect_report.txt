@@ -1,0 +1,72 @@
+============================================================
+建筑物变化检测报告
+============================================================
+基期(第一期): /home/fumu/conda_disk/baiduwangpan/无人机违建_test/test_2/2月13.tif
+检测期(第二期): /home/fumu/conda_disk/baiduwangpan/无人机违建_test/test_2/7月13.tif
+模型: /home/fumu/PycharmProjects/ultralytics-main/runs/segment/train-3/weights/best.pt
+置信度阈值: 0.5
+NMS IoU阈值: 0.5
+匹配IoU阈值: 0.3
+面积变化阈值: 0.2
+切片尺寸: 1024x1024, 步长=800
+
+重叠区域: 499.5m x 484.2m
+影像像素: 2497x2421
+
+基期检测建筑物: 81
+检测期检测建筑物: 89
+匹配(两期均有): 62
+新增建筑物: 27
+消失建筑物: 19
+
+--- 新增建筑物 ---
+  building conf=0.893 bbox=[2113.5, 1130.8, 2497, 1684.6]
+  building conf=0.873 bbox=[222.7, 1808.5, 289.3, 1896.7]
+  building conf=0.864 bbox=[923.3, 227.3, 1046.9, 490.3]
+  building conf=0.851 bbox=[819.4, 605.9, 943.6, 873.3]
+  building conf=0.851 bbox=[162.4, 2083.8, 215.8, 2165.2]
+  building conf=0.844 bbox=[167.0, 1963.2, 243.7, 2093.7]
+  building conf=0.793 bbox=[670.1, 2179.5, 735.9, 2246.7]
+  building conf=0.789 bbox=[215.0, 1897.9, 271.1, 1969.8]
+  building conf=0.784 bbox=[869.7, 485.4, 963.5, 589.9]
+  building conf=0.756 bbox=[2426.2, 217.9, 2496.8, 270.5]
+  building conf=0.756 bbox=[773.8, 2280.7, 834.5, 2341.1]
+  building conf=0.752 bbox=[492.5, 1744.6, 520.2, 1800.6]
+  building conf=0.709 bbox=[721.2, 2228.7, 787.8, 2296.4]
+  building conf=0.697 bbox=[978.8, 1150.0, 1023.6, 1216.4]
+  building conf=0.664 bbox=[2242.6, 976.0, 2351.9, 1023.6]
+  building conf=0.638 bbox=[800.1, 2288.5, 837.2, 2343.8]
+  building conf=0.614 bbox=[875.4, 2379.1, 933.7, 2420.8]
+  building conf=0.613 bbox=[760.5, 800.0, 917.6, 896.1]
+  building conf=0.608 bbox=[1473.2, 439.3, 1535.5, 494.9]
+  building conf=0.6 bbox=[405.3, 2041.2, 442.1, 2091.1]
+  building conf=0.586 bbox=[131.8, 2167.2, 189.9, 2239.7]
+  building conf=0.568 bbox=[1582.8, 369.5, 2490.9, 864.7]
+  building conf=0.566 bbox=[2450.4, 2119.3, 2496.7, 2211.0]
+  building conf=0.558 bbox=[459.6, 1999.4, 486.6, 2026.2]
+  building conf=0.546 bbox=[2381.1, 154.7, 2495.7, 237.6]
+  building conf=0.534 bbox=[819.2, 2325.4, 893.7, 2398.0]
+  building conf=0.529 bbox=[482.4, 661.7, 602.6, 887.7]
+--- 消失建筑物 ---
+  building conf=0.875 bbox=[0.2, 791.7, 110.3, 871.1]
+  building conf=0.822 bbox=[564.8, 1681.7, 641.0, 1748.4]
+  building conf=0.807 bbox=[562.2, 1509.8, 653.5, 1638.4]
+  building conf=0.762 bbox=[130.9, 1807.0, 295.8, 2246.8]
+  building conf=0.743 bbox=[2035.9, 1397.3, 2220.7, 1499.3]
+  building conf=0.729 bbox=[0.2, 693.8, 21.4, 762.7]
+  building conf=0.725 bbox=[288.8, 800.1, 454.4, 834.2]
+  building conf=0.662 bbox=[627.5, 1593.5, 662.5, 1620.2]
+  building conf=0.658 bbox=[2084.4, 1847.6, 2448.5, 2000.5]
+  building conf=0.651 bbox=[2360.9, 1721.6, 2425.7, 1823.4]
+  building conf=0.611 bbox=[2436.6, 800.1, 2496.6, 834.7]
+  building conf=0.587 bbox=[650.4, 1670.6, 671.9, 1703.8]
+  building conf=0.585 bbox=[236.2, 1800.6, 297.0, 1823.5]
+  building conf=0.584 bbox=[1473.0, 904.2, 2189.5, 1240.4]
+  building conf=0.579 bbox=[1969.2, 870.2, 2497, 1237.2]
+  building conf=0.571 bbox=[485.2, 823.5, 559.0, 890.9]
+  building conf=0.547 bbox=[981.5, 495.2, 1023.6, 658.0]
+  building conf=0.524 bbox=[672.9, 1691.0, 704.7, 1718.0]
+  building conf=0.513 bbox=[553.8, 1655.0, 585.6, 1678.3]
+
+总耗时: 5.7s (0.1min)
+任务ID: caf080723a4e405abd027a07403cbd9c
