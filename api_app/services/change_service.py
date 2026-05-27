@@ -64,46 +64,55 @@ class ChangeDetectionService:
                     f"匹配IoU={match_iou_threshold}, 面积变化阈值={area_change_threshold}")
 
         warp_res = target_res
+        bounds = None
+        arr1 = None
+        gt_out = None
+        crs_out = None
+
         if HAS_GDAL:
             logger.info("[1] 计算重叠区域...")
             try:
                 bounds = get_overlap_bounds(t1_path, t2_path)
-            except ValueError as e:
+            except (ValueError, RuntimeError) as e:
                 logger.warning(f"重叠区域计算失败({e}), 将直接读取影像")
 
-            ds1_info = gdal.Open(t1_path)
-            gt1_src = ds1_info.GetGeoTransform()
-            ds1_info = None
-            pixel_size = abs(gt1_src[1])
-            if pixel_size < 0.01 and target_res > 0.01:
-                logger.info(f"影像为经纬度坐标(像素={pixel_size}), target_res={target_res}度过大, 自动调整为源影像分辨率")
-                warp_res = pixel_size
-            else:
-                logger.info(f"影像为投影坐标(像素={pixel_size}), 使用target_res={target_res}")
+            try:
+                ds1_info = gdal.Open(t1_path)
+                gt1_src = ds1_info.GetGeoTransform()
+                ds1_info = None
+                pixel_size = abs(gt1_src[1])
+                if pixel_size < 0.01 and target_res > 0.01:
+                    logger.info(f"影像为经纬度坐标(像素={pixel_size}), target_res={target_res}度过大, 自动调整为源影像分辨率")
+                    warp_res = pixel_size
+                else:
+                    logger.info(f"影像为投影坐标(像素={pixel_size}), 使用target_res={target_res}")
+            except Exception as e:
+                logger.warning(f"读取影像GeoTransform失败({e})")
 
             if bounds:
-                logger.info("[2] GDAL配准+裁剪...")
-                p1_warped = os.path.join(task_dir, "period1_aligned.tif")
-                p2_warped = os.path.join(task_dir, "period2_aligned.tif")
-                warp_to_overlap(t1_path, bounds, warp_res, p1_warped)
-                warp_to_overlap(t2_path, bounds, warp_res, p2_warped)
+                try:
+                    logger.info("[2] GDAL配准+裁剪...")
+                    p1_warped = os.path.join(task_dir, "period1_aligned.tif")
+                    p2_warped = os.path.join(task_dir, "period2_aligned.tif")
+                    warp_to_overlap(t1_path, bounds, warp_res, p1_warped)
+                    warp_to_overlap(t2_path, bounds, warp_res, p2_warped)
 
-                logger.info("[3] 读取为BGR uint8...")
-                arr1, gt_out, crs_out = read_as_bgr_uint8(p1_warped)
-                arr2, gt2, crs2 = read_as_bgr_uint8(p2_warped)
-                h = min(arr1.shape[0], arr2.shape[0])
-                w = min(arr1.shape[1], arr2.shape[1])
-                arr1 = arr1[:h, :w]
-                arr2 = arr2[:h, :w]
+                    logger.info("[3] 读取为BGR uint8...")
+                    arr1, gt_out, crs_out = read_as_bgr_uint8(p1_warped)
+                    arr2, gt2, crs2 = read_as_bgr_uint8(p2_warped)
+                    h = min(arr1.shape[0], arr2.shape[0])
+                    w = min(arr1.shape[1], arr2.shape[1])
+                    arr1 = arr1[:h, :w]
+                    arr2 = arr2[:h, :w]
 
-                logger.info("[3.5] 去除黑边...")
-                arr1, arr2, gt_out = crop_black_border(arr1, arr2, gt_out)
-            else:
-                arr1, gt_out, crs_out = read_as_bgr_uint8(t1_path)
-                arr2, gt2, crs2 = read_as_bgr_uint8(t2_path)
-                bounds = None
-        else:
-            logger.warning("GDAL不可用，直接读取影像（可能不支持GeoTIFF配准）")
+                    logger.info("[3.5] 去除黑边...")
+                    arr1, arr2, gt_out = crop_black_border(arr1, arr2, gt_out)
+                except Exception as e:
+                    logger.warning(f"GDAL配准裁剪失败({e}), 回退到直接读取影像")
+                    bounds = None
+
+        if arr1 is None:
+            logger.info("直接读取影像（不经过GDAL配准）...")
             arr1, gt_out, crs_out = read_as_bgr_uint8(t1_path)
             arr2, gt2, crs2 = read_as_bgr_uint8(t2_path)
             bounds = None

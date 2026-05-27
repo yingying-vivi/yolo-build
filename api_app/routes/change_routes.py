@@ -24,8 +24,9 @@ def _run_change_task(task_id, t1_path, t2_path,
     try:
         TaskManager.start_task(task_id, message='正在进行变化检测')
 
-        tile_size = crop_size
-        stride = int(tile_size * 0.8)
+        tile_size = Config.DEFAULT_TILE_SIZE
+        stride = Config.DEFAULT_STRIDE
+        logger.info(f"YOLO推理tile_size={tile_size}, stride={stride}, 客户端crop_size={crop_size}仅记录")
         nms_iou_threshold = Config.DEFAULT_NMS_IOU_THRESHOLD
         vis_tile_size = Config.DEFAULT_VIS_TILE_SIZE
         target_res = Config.DEFAULT_TARGET_RES

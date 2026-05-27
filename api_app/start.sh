@@ -5,7 +5,7 @@ PROJECT_DIR="/home/fumu/PycharmProjects/ultralytics-main"
 export PYTHONPATH="$PROJECT_DIR"
 export YOLO_OFFLINE=True
 export YOLO_AUTOINSTALL=False
-export PROJ_LIB="/usr/share/proj"
+export PROJ_LIB="/home/fumu/conda_disk/anaconda3/envs/wrj_torch/share/proj"
 
 mkdir -p "$PROJECT_DIR/api_app/logs"
 
