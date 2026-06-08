@@ -24,10 +24,10 @@ TRAIN_ARGS = dict(
 )
 
 if __name__ == "__main__":
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"YOLO11n-seg | building+car | 新旧混合 | MIN_POINTS=4 | imgsz={IMGSZ}")
     print(f"epochs={EPOCHS}, batch={BATCH}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     model = YOLO(MODEL_WEIGHTS)
     model.train(**TRAIN_ARGS)
