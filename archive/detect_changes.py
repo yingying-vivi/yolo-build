@@ -1,9 +1,11 @@
 import os
 import re
 from pathlib import Path
-from ultralytics import YOLO
+
 import cv2
 import numpy as np
+
+from ultralytics import YOLO
 
 PROJECT = "/home/fumu/PycharmProjects/ultralytics-main"
 IMG_DIR = "/home/fumu/datasets/无人机分割数据集"
@@ -29,23 +31,38 @@ PAIRS = [
 ]
 
 MONTH_CN = {
-    "January": "1月", "Jan": "1月",
-    "February": "2月", "Feb": "2月",
-    "March": "3月", "Mar": "3月",
-    "April": "4月", "Apr": "4月",
+    "January": "1月",
+    "Jan": "1月",
+    "February": "2月",
+    "Feb": "2月",
+    "March": "3月",
+    "Mar": "3月",
+    "April": "4月",
+    "Apr": "4月",
     "May": "5月",
-    "June": "6月", "Jun": "6月",
-    "July": "7月", "Jul": "7月",
-    "August": "8月", "Aug": "8月",
-    "September": "9月", "Sep": "9月",
-    "October": "10月", "Oct": "10月",
-    "November": "11月", "Nov": "11月",
-    "December": "12月", "Dec": "12月",
+    "June": "6月",
+    "Jun": "6月",
+    "July": "7月",
+    "Jul": "7月",
+    "August": "8月",
+    "Aug": "8月",
+    "September": "9月",
+    "Sep": "9月",
+    "October": "10月",
+    "Oct": "10月",
+    "November": "11月",
+    "Nov": "11月",
+    "December": "12月",
+    "Dec": "12月",
 }
 
 LOCATION_CN = {
-    "naiqiong": "乃琼", "yangda": "羊达", "dongga": "东嘎",
-    "gurong": "古荣", "niedang": "尼达", "qushui": "曲水",
+    "naiqiong": "乃琼",
+    "yangda": "羊达",
+    "dongga": "东嘎",
+    "gurong": "古荣",
+    "niedang": "尼达",
+    "qushui": "曲水",
     "deqing": "德庆",
 }
 
@@ -83,12 +100,14 @@ def detect_buildings(model, img_path):
             if r.masks is not None and i < len(r.masks):
                 mask_np = r.masks.data[i].cpu().numpy()
                 mask = mask_np
-            detections.append({
-                "class": cls_name,
-                "bbox": [round(v, 1) for v in xyxy],
-                "conf": round(conf, 3),
-                "mask": mask,
-            })
+            detections.append(
+                {
+                    "class": cls_name,
+                    "bbox": [round(v, 1) for v in xyxy],
+                    "conf": round(conf, 3),
+                    "mask": mask,
+                }
+            )
     return detections
 
 
@@ -131,7 +150,11 @@ def find_changes(det_a, det_b, img_shape, iou_threshold=0.3, mask_iou_threshold=
     for i, da in enumerate(det_a):
         for j, db in enumerate(det_b):
             bbox_iou = compute_iou(da["bbox"], db["bbox"])
-            mask_iou = compute_mask_iou(da["mask"], db["mask"], img_shape) if da["mask"] is not None and db["mask"] is not None else 0.0
+            mask_iou = (
+                compute_mask_iou(da["mask"], db["mask"], img_shape)
+                if da["mask"] is not None and db["mask"] is not None
+                else 0.0
+            )
             best_iou = max(bbox_iou, mask_iou)
             dist = compute_center_distance(da["bbox"], db["bbox"])
             pairs.append((best_iou, dist, i, j))
@@ -144,14 +167,20 @@ def find_changes(det_a, det_b, img_shape, iou_threshold=0.3, mask_iou_threshold=
             continue
         matched_a.add(i)
         matched_b.add(j)
-        mask_iou_val = compute_mask_iou(det_a[i]["mask"], det_b[j]["mask"], img_shape) if det_a[i]["mask"] is not None and det_b[j]["mask"] is not None else 0.0
-        matches.append({
-            "box_a": det_a[i],
-            "box_b": det_b[j],
-            "bbox_iou": round(compute_iou(det_a[i]["bbox"], det_b[j]["bbox"]), 3),
-            "mask_iou": round(mask_iou_val, 3),
-            "center_dist": round(dist, 1),
-        })
+        mask_iou_val = (
+            compute_mask_iou(det_a[i]["mask"], det_b[j]["mask"], img_shape)
+            if det_a[i]["mask"] is not None and det_b[j]["mask"] is not None
+            else 0.0
+        )
+        matches.append(
+            {
+                "box_a": det_a[i],
+                "box_b": det_b[j],
+                "bbox_iou": round(compute_iou(det_a[i]["bbox"], det_b[j]["bbox"]), 3),
+                "mask_iou": round(mask_iou_val, 3),
+                "center_dist": round(dist, 1),
+            }
+        )
 
     new_buildings = [det_b[j] for j in range(len(det_b)) if j not in matched_b]
     disappeared = [det_a[i] for i in range(len(det_a)) if i not in matched_a]
@@ -176,15 +205,14 @@ def draw_mask_on_image(canvas, mask, offset_x=0, shape=None, color=(0, 255, 0), 
         cv2.drawContours(canvas, [cnt_shifted], -1, color, 2)
 
 
-def draw_comparison(img_a, img_b, det_a, det_b, matches, new_buildings, disappeared,
-                    save_path, version, time_a, time_b):
+def draw_comparison(
+    img_a, img_b, det_a, det_b, matches, new_buildings, disappeared, save_path, version, time_a, time_b
+):
     h, w = img_a.shape[:2]
     canvas = cv2.hconcat([img_a, img_b])
 
-    cv2.putText(canvas, f"[{version}] {time_a}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-    cv2.putText(canvas, f"[{version}] {time_b}", (w + 10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+    cv2.putText(canvas, f"[{version}] {time_a}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(canvas, f"[{version}] {time_b}", (w + 10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
     matched_b_indices = set()
     for match in matches:
@@ -201,8 +229,7 @@ def draw_comparison(img_a, img_b, det_a, det_b, matches, new_buildings, disappea
         draw_mask_on_image(canvas, da["mask"], offset_x=0, shape=(h, w), color=color)
         x1, y1, x2, y2 = [int(v) for v in da["bbox"]]
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(canvas, label, (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+        cv2.putText(canvas, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
     for db in det_b:
         if db in new_buildings:
@@ -217,12 +244,18 @@ def draw_comparison(img_a, img_b, det_a, det_b, matches, new_buildings, disappea
         draw_mask_on_image(canvas, db["mask"], offset_x=w, shape=(h, w), color=color)
         x1, y1, x2, y2 = [int(v) for v in db["bbox"]]
         cv2.rectangle(canvas, (x1 + w, y1), (x2 + w, y2), color, 2)
-        cv2.putText(canvas, label, (x1 + w, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        cv2.putText(canvas, label, (x1 + w, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     legend_y = h - 20
-    cv2.putText(canvas, "Green=A period  Yellow=Still exists  Red=NEW!  Purple=GONE(A only)",
-                (10, legend_y), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+    cv2.putText(
+        canvas,
+        "Green=A period  Yellow=Still exists  Red=NEW!  Purple=GONE(A only)",
+        (10, legend_y),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (255, 255, 255),
+        1,
+    )
 
     cv2.imwrite(save_path, canvas)
 
@@ -241,7 +274,7 @@ def main():
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         model = YOLO(model_path)
-        header = f"\n{'='*60}\n使用模型: {version}  权重: {model_path}\n输出目录: {output_dir}\n{'='*60}"
+        header = f"\n{'=' * 60}\n使用模型: {version}  权重: {model_path}\n输出目录: {output_dir}\n{'=' * 60}"
         print(header)
         all_lines.append(header)
 
@@ -266,8 +299,9 @@ def main():
             matches, new_buildings, disappeared = find_changes(det_a, det_b, img_shape)
 
             save_path = os.path.join(output_dir, f"{pair_name}.png")
-            draw_comparison(img_a, img_b, det_a, det_b, matches, new_buildings, disappeared,
-                            save_path, version, time_a, time_b)
+            draw_comparison(
+                img_a, img_b, det_a, det_b, matches, new_buildings, disappeared, save_path, version, time_a, time_b
+            )
 
             lines = []
             lines.append(f"\n  [{version}] 对比: {time_a} vs {time_b}")
@@ -281,7 +315,9 @@ def main():
             for db in disappeared:
                 lines.append(f"      消失建筑: {db['class']} conf={db['conf']} bbox={db['bbox']}")
             for match in matches:
-                lines.append(f"      匹配建筑: {match['box_a']['class']} -> {match['box_b']['class']} bbox_iou={match['bbox_iou']} mask_iou={match['mask_iou']} 中心距离={match['center_dist']}")
+                lines.append(
+                    f"      匹配建筑: {match['box_a']['class']} -> {match['box_b']['class']} bbox_iou={match['bbox_iou']} mask_iou={match['mask_iou']} 中心距离={match['center_dist']}"
+                )
             lines.append(f"    保存: {save_path}")
 
             for line in lines:
