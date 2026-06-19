@@ -30,11 +30,11 @@ TRAIN_ARGS = dict(
 )
 
 if __name__ == "__main__":
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"训练 YOLO11n-seg | 数据: {DATA} | 类别数: 5")
     print(f"epochs={EPOCHS}, imgsz={IMGSZ}, batch={BATCH}, patience={PATIENCE}")
     print(f"结果保存: {PROJECT}/{EXPERIMENT_NAME}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     model = YOLO(MODEL_WEIGHTS)
     model.train(**TRAIN_ARGS)
