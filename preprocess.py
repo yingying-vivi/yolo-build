@@ -1,11 +1,10 @@
+import base64
 import json
 import os
-import re
 import random
-import base64
 import shutil
+from collections import Counter
 from pathlib import Path
-from collections import Counter, defaultdict
 
 NEW_DATA_DIRS = [
     Path("/home/fumu/datadisk/标注区域划分/堆龙东嘎"),
@@ -25,7 +24,7 @@ CLASS_MAP = {
 
 
 def convert_labelme_to_yolo(json_path):
-    d = json.load(open(json_path, "r"))
+    d = json.load(open(json_path))
     img_w = d["imageWidth"]
     img_h = d["imageHeight"]
     lines = []
@@ -98,15 +97,15 @@ def main():
             for line in lines:
                 cls_id = int(line.split()[0])
                 label_counter[cls_id] += 1
-            idx = len(all_samples)
+            len(all_samples)
             all_samples.append((json_path, lines, d, str(src_dir)))
 
     CLASS_NAMES = {0: "residential", 1: "steel_roof", 2: "large_complex", 3: "glass_roof", 4: "under_construction"}
     print(f"总标注: {total_shapes}")
-    print(f"过滤(<{MIN_POINTS}点): {total_filtered} ({total_filtered/total_shapes*100:.1f}%)")
+    print(f"过滤(<{MIN_POINTS}点): {total_filtered} ({total_filtered / total_shapes * 100:.1f}%)")
     print(f"保留标注: {total_shapes - total_filtered}")
     print(f"空标签样本: {skipped_empty}")
-    print(f"\n保留标注类别:")
+    print("\n保留标注类别:")
     for cls_id, count in label_counter.most_common():
         print(f"  {CLASS_NAMES[cls_id]}: {count}")
 
@@ -118,8 +117,8 @@ def main():
 
     splits = {
         "train": all_samples[:n_train],
-        "val": all_samples[n_train:n_train + n_val],
-        "test": all_samples[n_train + n_val:],
+        "val": all_samples[n_train : n_train + n_val],
+        "test": all_samples[n_train + n_val :],
     }
 
     print(f"\nTrain: {len(splits['train'])}, Val: {len(splits['val'])}, Test: {len(splits['test'])}")
