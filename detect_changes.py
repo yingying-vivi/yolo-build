@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
-from ultralytics import YOLO
+
 import cv2
 import numpy as np
+
+from ultralytics import YOLO
 
 os.environ["YOLO_OFFLINE"] = "True"
 os.environ["YOLO_AUTOINSTALL"] = "False"
@@ -17,7 +19,15 @@ CONF_THRESHOLD = 0.5
 MODEL_PATH = os.path.join(PROJECT, "runs/building_seg_v5/weights/best.pt")
 
 REGION_CN = {"堆龙": "堆龙东嘎", "曲水": "曲水"}
-CLASS_COLORS = {"building": (0, 255, 0), "car": (255, 255, 0), "residential": (0, 200, 0), "steel_roof": (0, 180, 0), "large_complex": (0, 160, 0), "glass_roof": (0, 140, 0), "under_construction": (0, 120, 0)}
+CLASS_COLORS = {
+    "building": (0, 255, 0),
+    "car": (255, 255, 0),
+    "residential": (0, 200, 0),
+    "steel_roof": (0, 180, 0),
+    "large_complex": (0, 160, 0),
+    "glass_roof": (0, 140, 0),
+    "under_construction": (0, 120, 0),
+}
 
 
 def find_change_pairs(img_dir):
@@ -30,7 +40,7 @@ def find_change_pairs(img_dir):
         for num_dir in sorted(region_dir.iterdir(), key=lambda d: int(d.name) if d.name.isdigit() else 0):
             if not num_dir.is_dir():
                 continue
-            imgs = sorted([f for f in num_dir.iterdir() if f.suffix.lower() in ['.png', '.jpg', '.jpeg']])
+            imgs = sorted([f for f in num_dir.iterdir() if f.suffix.lower() in [".png", ".jpg", ".jpeg"]])
             if len(imgs) >= 2:
                 pairs.append((imgs[0], imgs[1], f"{region_cn}_{num_dir.name}"))
     return pairs
@@ -44,12 +54,14 @@ def detect_buildings(model, img_path):
             mask = None
             if r.masks is not None and i < len(r.masks):
                 mask = r.masks.data[i].cpu().numpy()
-            detections.append({
-                "class_name": model.names[int(box.cls[0])],
-                "bbox": [round(v, 1) for v in box.xyxy[0].tolist()],
-                "conf": round(float(box.conf[0]), 3),
-                "mask": mask,
-            })
+            detections.append(
+                {
+                    "class_name": model.names[int(box.cls[0])],
+                    "bbox": [round(v, 1) for v in box.xyxy[0].tolist()],
+                    "conf": round(float(box.conf[0]), 3),
+                    "mask": mask,
+                }
+            )
     return detections
 
 
@@ -82,7 +94,11 @@ def find_new_buildings(det_a, det_b, img_shape, iou_threshold=0.3):
     for i, da in enumerate(det_a):
         for j, db in enumerate(det_b):
             bbox_iou = compute_iou(da["bbox"], db["bbox"])
-            mask_iou = compute_mask_iou(da["mask"], db["mask"], img_shape) if da["mask"] is not None and db["mask"] is not None else 0.0
+            mask_iou = (
+                compute_mask_iou(da["mask"], db["mask"], img_shape)
+                if da["mask"] is not None and db["mask"] is not None
+                else 0.0
+            )
             best_iou = max(bbox_iou, mask_iou)
             pairs.append((best_iou, i, j))
     pairs.sort(key=lambda x: -x[0])
@@ -95,7 +111,11 @@ def find_new_buildings(det_a, det_b, img_shape, iou_threshold=0.3):
         matched_b.add(j)
     new_buildings = [det_b[j] for j in range(len(det_b)) if j not in matched_b]
     disappeared = [det_a[i] for i in range(len(det_a)) if i not in matched_a]
-    matched = [(det_a[i], det_b[j]) for best_iou, i, j in pairs if i in matched_a and j in matched_b and best_iou >= iou_threshold]
+    matched = [
+        (det_a[i], det_b[j])
+        for best_iou, i, j in pairs
+        if i in matched_a and j in matched_b and best_iou >= iou_threshold
+    ]
     return matched, new_buildings, disappeared
 
 
@@ -128,7 +148,14 @@ def run_change_detection(model):
             print(f"  无法读取: {path_a.name} 或 {path_b.name}")
             continue
 
-        building_classes = {"residential", "steel_roof", "large_complex", "glass_roof", "under_construction", "building"}
+        building_classes = {
+            "residential",
+            "steel_roof",
+            "large_complex",
+            "glass_roof",
+            "under_construction",
+            "building",
+        }
         det_a_all = detect_buildings(model, str(path_a))
         det_b_all = detect_buildings(model, str(path_b))
         det_a = [d for d in det_a_all if d["class_name"] in building_classes]
@@ -142,7 +169,7 @@ def run_change_detection(model):
         cv2.putText(canvas, f"{path_a.name} (前期)", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         cv2.putText(canvas, f"{path_b.name} (后期)", (w + 10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
-        matched_b_set = set(id(mb) for _, mb in matched)
+        matched_b_set = {id(mb) for _, mb in matched}
 
         for d in det_a_all:
             if d["class_name"] == "car":
@@ -176,13 +203,22 @@ def run_change_detection(model):
                 draw_mask_on_image(canvas, db["mask"], offset_x=w, shape=(h, w), color=(0, 200, 0))
 
         legend_y = h - 20
-        cv2.putText(canvas, "Green=Existing  Red=NEW  Purple=Disappeared  Yellow=Car",
-                    (10, legend_y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+        cv2.putText(
+            canvas,
+            "Green=Existing  Red=NEW  Purple=Disappeared  Yellow=Car",
+            (10, legend_y),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            (255, 255, 255),
+            1,
+        )
 
         save_path = os.path.join(CHANGE_OUTPUT, f"{tag}.png")
         cv2.imwrite(save_path, canvas)
 
-        lines = [f"{tag}: {path_a.name} vs {path_b.name} | 建筑{len(det_a)} vs {len(det_b)} | 匹配{len(matched)} | 新增{len(new_buildings)} | 消失{len(disappeared)}"]
+        lines = [
+            f"{tag}: {path_a.name} vs {path_b.name} | 建筑{len(det_a)} vs {len(det_b)} | 匹配{len(matched)} | 新增{len(new_buildings)} | 消失{len(disappeared)}"
+        ]
         for nb in new_buildings:
             lines.append(f"  新增: conf={nb['conf']} bbox={nb['bbox']}")
         for line in lines:
@@ -196,7 +232,7 @@ def run_change_detection(model):
 
 
 def run_prediction(model):
-    img_files = sorted([f for f in os.listdir(PREDICT_IMG_DIR) if f.lower().endswith(('.jpg', '.png', '.jpeg'))])
+    img_files = sorted([f for f in os.listdir(PREDICT_IMG_DIR) if f.lower().endswith((".jpg", ".png", ".jpeg"))])
     print(f"\n[单图检测] 检测 {len(img_files)} 张test图片")
 
     all_lines = []
@@ -214,7 +250,9 @@ def run_prediction(model):
             draw_mask_on_image(canvas, d["mask"], shape=(h, w), color=color)
             x1, y1, x2, y2 = [int(v) for v in d["bbox"]]
             cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-            cv2.putText(canvas, f"{d['class_name']} {d['conf']:.2f}", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+            cv2.putText(
+                canvas, f"{d['class_name']} {d['conf']:.2f}", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1
+            )
 
         save_path = os.path.join(PREDICT_OUTPUT, img_name)
         cv2.imwrite(save_path, canvas)
