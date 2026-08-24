@@ -1,11 +1,11 @@
+import base64
 import json
 import os
-import re
 import random
-import base64
+import re
 import shutil
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 NEW_DATA_DIRS = [
     Path("/home/fumu/datadisk/标注区域划分/堆龙东嘎"),
@@ -34,7 +34,7 @@ YOLO_CLASS_ID = {"building": 0}
 
 
 def convert_labelme_to_yolo(json_path, class_map):
-    d = json.load(open(json_path, "r"))
+    d = json.load(open(json_path))
     img_w = d["imageWidth"]
     img_h = d["imageHeight"]
     lines = []
@@ -136,7 +136,7 @@ def main():
         all_samples.append(("old", json_path, lines, d, "old"))
 
     print(f"总标注数: {total_shapes}")
-    print(f"过滤(类别不匹配或<6点): {total_filtered} ({total_filtered/total_shapes*100:.1f}%)")
+    print(f"过滤(类别不匹配或<6点): {total_filtered} ({total_filtered / total_shapes * 100:.1f}%)")
     print(f"保留标注: {total_shapes - total_filtered}")
     print(f"过滤后空标签样本: {skipped_empty}")
 
@@ -156,8 +156,8 @@ def main():
         n_val = int(n * VAL_RATIO)
         n_test = n - n_train - n_val
         train_indices.extend(indices[:n_train])
-        val_indices.extend(indices[n_train:n_train + n_val])
-        test_indices.extend(indices[n_train + n_val:])
+        val_indices.extend(indices[n_train : n_train + n_val])
+        test_indices.extend(indices[n_train + n_val :])
         print(f"  {grp}: total={n}, train={n_train}, val={n_val}, test={n_test}")
 
     splits = {
@@ -168,7 +168,7 @@ def main():
 
     print(f"\nTotal valid samples: {len(all_samples)}")
     print(f"Train: {len(splits['train'])}, Val: {len(splits['val'])}, Test: {len(splits['test'])}")
-    print(f"\nLabel distribution:")
+    print("\nLabel distribution:")
     for label, count in label_counter.most_common():
         print(f"  {label}: {count}")
 
