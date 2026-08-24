@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 大尺寸TIFF影像建筑物变化检测
-流程: GDAL配准裁剪 -> 切片YOLO推理 -> 跨切片NMS -> 两期匹配 -> 切片对比可视化
+流程: GDAL配准裁剪 -> 切片YOLO推理 -> 跨切片NMS -> 两期匹配 -> 切片对比可视化.
 
 基期(第一期)为比对基准, 检测期(第二期)新增建筑物标红色
 输出: 每个切片的左右对比图(左=基期, 右=检测期), 新增建筑标红, 消失标紫
@@ -9,12 +9,15 @@
 
 import os
 import time
+
 os.environ["PROJ_LIB"] = "/home/fumu/conda_disk/anaconda3/envs/wrj_torch/share/proj"
 os.environ["PROJ_DATA"] = "/home/fumu/conda_disk/anaconda3/envs/wrj_torch/share/proj"
-import numpy as np
-import cv2
 from pathlib import Path
+
+import cv2
+import numpy as np
 from osgeo import gdal
+
 from ultralytics import YOLO
 
 PERIOD1_PATH = "/home/fumu/conda_disk/baiduwangpan/无人机违建_test/第一期/第一期.tif"
@@ -73,19 +76,19 @@ def warp_to_overlap(src_path, bounds, target_res, out_path):
     n_bands = ds_src.RasterCount
     ds_src = None
 
-    warp_kwargs = dict(
-        format='GTiff',
-        outputBounds=(xmin, ymin, xmax, ymax),
-        xRes=target_res,
-        yRes=target_res,
-        resampleAlg='bilinear',
-        outputType=gdal.GDT_Byte,
-        creationOptions=['COMPRESS=LZW', 'BIGTIFF=YES', 'TILED=YES', 'PHOTOMETRIC=RGB'],
-    )
+    warp_kwargs = {
+        "format": "GTiff",
+        "outputBounds": (xmin, ymin, xmax, ymax),
+        "xRes": target_res,
+        "yRes": target_res,
+        "resampleAlg": "bilinear",
+        "outputType": gdal.GDT_Byte,
+        "creationOptions": ["COMPRESS=LZW", "BIGTIFF=YES", "TILED=YES", "PHOTOMETRIC=RGB"],
+    }
 
     if src_nodata is not None:
-        warp_kwargs['srcNodata'] = [src_nodata] * n_bands
-        warp_kwargs['dstNodata'] = [0] * n_bands
+        warp_kwargs["srcNodata"] = [src_nodata] * n_bands
+        warp_kwargs["dstNodata"] = [0] * n_bands
         print(f"  srcNodata={src_nodata} -> dstNodata=0")
 
     opts = gdal.WarpOptions(**warp_kwargs)
@@ -147,7 +150,7 @@ def crop_black_border(arr1, arr2, gt1, threshold=2):
 
     original_pct = valid.sum() / (arr1.shape[0] * arr1.shape[1]) * 100
     print(f"  黑边裁剪: 原始 {arr1.shape[1]}x{arr1.shape[0]} -> 有效区域 [{rmin}:{rmax}, {cmin}:{cmax}]")
-    print(f"  裁剪后: {cmax-cmin}x{rmax-rmin}, 有效像素占比: {original_pct:.1f}% -> 100%")
+    print(f"  裁剪后: {cmax - cmin}x{rmax - rmin}, 有效像素占比: {original_pct:.1f}% -> 100%")
 
     arr1 = arr1[rmin:rmax, cmin:cmax]
     arr2 = arr2[rmin:rmax, cmin:cmax]
@@ -180,7 +183,7 @@ def detect_tiled(model, img, tile_size, stride, conf_thresh):
     all_dets = []
     t0 = time.time()
     for idx, (y0, x0) in enumerate(positions):
-        tile = img[y0:y0 + tile_size, x0:x0 + tile_size]
+        tile = img[y0 : y0 + tile_size, x0 : x0 + tile_size]
         th, tw = tile.shape[:2]
         pad_h = tile_size - th
         pad_w = tile_size - tw
@@ -216,7 +219,7 @@ def detect_tiled(model, img, tile_size, stride, conf_thresh):
                 if r.masks is not None and i < len(r.masks):
                     mask_np = r.masks.data[i].cpu().numpy()
                     try:
-                        if hasattr(r.masks, 'xy') and len(r.masks.xy) > i:
+                        if hasattr(r.masks, "xy") and len(r.masks.xy) > i:
                             poly = r.masks.xy[i].copy()
                             poly[:, 0] += x0
                             poly[:, 1] += y0
@@ -227,13 +230,15 @@ def detect_tiled(model, img, tile_size, stride, conf_thresh):
                     except Exception:
                         mask_poly = None
 
-                all_dets.append({
-                    "class": cls_name,
-                    "bbox": bbox,
-                    "conf": round(conf_val, 3),
-                    "mask": mask_np,
-                    "mask_poly": mask_poly,
-                })
+                all_dets.append(
+                    {
+                        "class": cls_name,
+                        "bbox": bbox,
+                        "conf": round(conf_val, 3),
+                        "mask": mask_np,
+                        "mask_poly": mask_poly,
+                    }
+                )
 
         if (idx + 1) % 50 == 0 or idx == len(positions) - 1:
             elapsed = time.time() - t0
@@ -325,15 +330,14 @@ def draw_mask_poly_on_tile(canvas, poly, color, alpha=0.35):
     cv2.polylines(canvas, [pts], True, color, 2)
 
 
-def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeared,
-                            output_dir, vis_tile_size):
+def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeared, output_dir, vis_tile_size):
     h, w = arr1.shape[:2]
     tile_dir = os.path.join(output_dir, "comparison_tiles")
     Path(tile_dir).mkdir(parents=True, exist_ok=True)
 
-    matched_b_ids = {id(m["box_b"]) for m in matches}
+    {id(m["box_b"]) for m in matches}
     disappeared_ids = {id(d) for d in disappeared}
-    new_ids = {id(nb) for nb in new_buildings}
+    {id(nb) for nb in new_buildings}
 
     n_rows = h // vis_tile_size
     n_cols = w // vis_tile_size
@@ -352,13 +356,12 @@ def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeare
         print(f"  跳过边缘碎片: 底部{margin_h}px, 右侧{margin_w}px (不足一个完整切片)")
 
     total = len(positions)
-    print(f"  生成 {total} 个对比切片 ({vis_tile_size}x{vis_tile_size}), "
-          f"网格 {n_rows}行 x {n_cols}列")
+    print(f"  生成 {total} 个对比切片 ({vis_tile_size}x{vis_tile_size}), 网格 {n_rows}行 x {n_cols}列")
 
     has_change_tiles = 0
     for idx, (y0, x0, row, col) in enumerate(positions):
-        crop1 = arr1[y0:y0 + vis_tile_size, x0:x0 + vis_tile_size]
-        crop2 = arr2[y0:y0 + vis_tile_size, x0:x0 + vis_tile_size]
+        crop1 = arr1[y0 : y0 + vis_tile_size, x0 : x0 + vis_tile_size]
+        crop2 = arr2[y0 : y0 + vis_tile_size, x0 : x0 + vis_tile_size]
 
         tile_bbox = [x0, y0, x0 + vis_tile_size, y0 + vis_tile_size]
 
@@ -381,8 +384,7 @@ def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeare
             y2t = min(vis_tile_size, int(da["bbox"][3]) - y0)
             cv2.rectangle(canvas_a, (x1t, y1t), (x2t, y2t), color, 2)
             if label:
-                cv2.putText(canvas_a, label, (x1t, max(12, y1t - 8)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1)
+                cv2.putText(canvas_a, label, (x1t, max(12, y1t - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1)
             if is_disappeared:
                 tile_has_change = True
 
@@ -397,8 +399,7 @@ def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeare
             x2t = min(vis_tile_size, int(nb["bbox"][2]) - x0)
             y2t = min(vis_tile_size, int(nb["bbox"][3]) - y0)
             cv2.rectangle(canvas_b, (x1t, y1t), (x2t, y2t), color, 3)
-            cv2.putText(canvas_b, "NEW!", (x1t, max(12, y1t - 8)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+            cv2.putText(canvas_b, "NEW!", (x1t, max(12, y1t - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
             tile_has_change = True
 
         for m in matches:
@@ -415,14 +416,20 @@ def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeare
             cv2.rectangle(canvas_b, (x1t, y1t), (x2t, y2t), color, 2)
 
         comparison = cv2.hconcat([canvas_a, canvas_b])
-        cv2.line(comparison, (vis_tile_size, 0), (vis_tile_size, vis_tile_size),
-                 (255, 255, 255), 2)
-        cv2.putText(comparison, "基期(第一期)", (10, 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.putText(comparison, "检测期(第二期)", (vis_tile_size + 10, 25),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.putText(comparison, f"Row{row} Col{col}", (10, vis_tile_size - 15),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (200, 200, 200), 1)
+        cv2.line(comparison, (vis_tile_size, 0), (vis_tile_size, vis_tile_size), (255, 255, 255), 2)
+        cv2.putText(comparison, "基期(第一期)", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(
+            comparison, "检测期(第二期)", (vis_tile_size + 10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2
+        )
+        cv2.putText(
+            comparison,
+            f"Row{row} Col{col}",
+            (10, vis_tile_size - 15),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            (200, 200, 200),
+            1,
+        )
 
         change_tag = "_change" if tile_has_change else ""
         tile_path = os.path.join(tile_dir, f"tile_r{row}_c{col}{change_tag}.png")
@@ -437,8 +444,7 @@ def create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeare
     return tile_dir, has_change_tiles, total
 
 
-def create_overview(arr1, arr2, det1, matches, new_buildings, disappeared,
-                    output_dir, scale=0.1):
+def create_overview(arr1, arr2, det1, matches, new_buildings, disappeared, output_dir, scale=0.1):
     h, w = arr1.shape[:2]
     new_w = int(w * scale)
     new_h = int(h * scale)
@@ -449,8 +455,7 @@ def create_overview(arr1, arr2, det1, matches, new_buildings, disappeared,
     for nb in new_buildings:
         x1, y1, x2, y2 = [int(v * scale) for v in nb["bbox"]]
         cv2.rectangle(thumb2, (x1, y1), (x2, y2), (0, 0, 255), 2)
-        cv2.putText(thumb2, "NEW", (x1, max(8, y1 - 5)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
+        cv2.putText(thumb2, "NEW", (x1, max(8, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
 
     for da in disappeared:
         x1, y1, x2, y2 = [int(v * scale) for v in da["bbox"]]
@@ -463,12 +468,17 @@ def create_overview(arr1, arr2, det1, matches, new_buildings, disappeared,
 
     overview = cv2.hconcat([thumb1, thumb2])
     cv2.line(overview, (new_w, 0), (new_w, new_h), (255, 255, 255), 3)
-    cv2.putText(overview, "基期(第一期)", (10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    cv2.putText(overview, "检测期(第二期)", (new_w + 10, 20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    cv2.putText(overview, "Red=NEW! Purple=GONE Green=Existing",
-                (10, new_h - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+    cv2.putText(overview, "基期(第一期)", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    cv2.putText(overview, "检测期(第二期)", (new_w + 10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    cv2.putText(
+        overview,
+        "Red=NEW! Purple=GONE Green=Existing",
+        (10, new_h - 15),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.4,
+        (255, 255, 255),
+        1,
+    )
 
     overview_path = os.path.join(output_dir, "overview_comparison.png")
     cv2.imwrite(overview_path, overview)
@@ -477,7 +487,7 @@ def create_overview(arr1, arr2, det1, matches, new_buildings, disappeared,
 
 
 def write_geotiff(out_path, data, gt, crs, dtype=gdal.GDT_Byte):
-    driver = gdal.GetDriverByName('GTiff')
+    driver = gdal.GetDriverByName("GTiff")
     if data.ndim == 2:
         h, w = data.shape
         bands = 1
@@ -485,8 +495,9 @@ def write_geotiff(out_path, data, gt, crs, dtype=gdal.GDT_Byte):
         h, w = data.shape[:2]
         bands = data.shape[2]
 
-    ds = driver.Create(out_path, w, h, bands, dtype,
-                       options=['COMPRESS=LZW', 'BIGTIFF=YES', 'TILED=YES', 'PHOTOMETRIC=RGB'])
+    ds = driver.Create(
+        out_path, w, h, bands, dtype, options=["COMPRESS=LZW", "BIGTIFF=YES", "TILED=YES", "PHOTOMETRIC=RGB"]
+    )
     ds.SetGeoTransform(gt)
     try:
         ds.SetProjection(crs)
@@ -533,7 +544,7 @@ def main():
 
     print("\n[3] 读取为BGR uint8...")
     arr1, gt_out, crs_out = read_as_bgr_uint8(p1_warped)
-    arr2, gt2, crs2 = read_as_bgr_uint8(p2_warped)
+    arr2, _gt2, _crs2 = read_as_bgr_uint8(p2_warped)
     h = min(arr1.shape[0], arr2.shape[0])
     w = min(arr1.shape[1], arr2.shape[1])
     arr1 = arr1[:h, :w]
@@ -563,9 +574,9 @@ def main():
     print(f"  消失建筑物: {len(disappeared)}")
 
     print("\n[8] 生成切片对比图...")
-    tile_dir, has_change, total_tiles = create_comparison_tiles(
-        arr1, arr2, det1, matches, new_buildings, disappeared,
-        OUTPUT_DIR, VIS_TILE_SIZE)
+    _tile_dir, has_change, total_tiles = create_comparison_tiles(
+        arr1, arr2, det1, matches, new_buildings, disappeared, OUTPUT_DIR, VIS_TILE_SIZE
+    )
     print(f"  有变化的切片: {has_change}/{total_tiles}")
 
     print("\n[9] 生成总览图...")
@@ -578,7 +589,7 @@ def main():
             cv2.fillPoly(new_mask, [nb["mask_poly"].astype(np.int32)], 255)
         else:
             x1, y1, x2, y2 = [int(v) for v in nb["bbox"]]
-            new_mask[max(0, y1):y2, max(0, x1):x2] = 255
+            new_mask[max(0, y1) : y2, max(0, x1) : x2] = 255
     write_geotiff(os.path.join(OUTPUT_DIR, "new_buildings_mask.tif"), new_mask, gt_out, crs_out)
 
     print("\n[11] 生成报告...")
@@ -596,7 +607,7 @@ def main():
     report.append(f"NMS IoU阈值: {NMS_IOU}")
     report.append(f"匹配IoU阈值: {MATCH_IOU}")
     report.append("")
-    report.append(f"重叠区域: {bounds[2]-bounds[0]:.1f}m x {bounds[3]-bounds[1]:.1f}m")
+    report.append(f"重叠区域: {bounds[2] - bounds[0]:.1f}m x {bounds[3] - bounds[1]:.1f}m")
     report.append(f"影像像素: {arr1.shape[1]}x{arr1.shape[0]}")
     report.append("")
     report.append(f"基期检测建筑物: {len(det1)}")
