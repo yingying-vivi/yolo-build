@@ -1,11 +1,11 @@
+import base64
 import json
 import os
-import re
 import random
-import base64
+import re
 import shutil
-from pathlib import Path
 from collections import Counter, defaultdict
+from pathlib import Path
 
 NEW_DATA_DIRS = [
     Path("/home/fumu/datadisk/标注区域划分/堆龙东嘎"),
@@ -35,7 +35,7 @@ _MONTH = "|".join(sorted(MONTH_ORDER, key=len, reverse=True))
 
 
 def convert_labelme_to_yolo(json_path, class_map):
-    d = json.load(open(json_path, "r"))
+    d = json.load(open(json_path))
     img_w = d["imageWidth"]
     img_h = d["imageHeight"]
     lines = []
@@ -142,7 +142,7 @@ def main():
         location_groups[grp].append(idx)
 
     print(f"总标注数: {total_shapes}")
-    print(f"过滤(<{MIN_POINTS}点或类别不匹配): {total_filtered} ({total_filtered/total_shapes*100:.1f}%)")
+    print(f"过滤(<{MIN_POINTS}点或类别不匹配): {total_filtered} ({total_filtered / total_shapes * 100:.1f}%)")
     print(f"保留标注: {total_shapes - total_filtered}")
     print(f"过滤后空标签样本: {skipped_empty}")
 
@@ -157,7 +157,7 @@ def main():
     n_groups = len(group_list)
     n_train_groups = int(n_groups * TRAIN_RATIO)
     n_val_groups = int(n_groups * VAL_RATIO)
-    n_test_groups = n_groups - n_train_groups - n_val_groups
+    n_groups - n_train_groups - n_val_groups
 
     for i, (grp, indices) in enumerate(group_list):
         if i < n_train_groups:
@@ -200,7 +200,7 @@ def main():
 
     print(f"\nTotal valid samples: {len(all_samples)}")
     print(f"Train: {len(split_data['train'])}, Val: {len(split_data['val'])}, Test: {len(split_data['test'])}")
-    print(f"\nLabel distribution:")
+    print("\nLabel distribution:")
     for label, count in label_counter.most_common():
         print(f"  {label}: {count}")
 

@@ -1,9 +1,10 @@
 import os
 import re
 from pathlib import Path
-from ultralytics import YOLO
+
 import cv2
-import numpy as np
+
+from ultralytics import YOLO
 
 PROJECT = "/home/fumu/PycharmProjects/ultralytics-main"
 TEST_DIR = "/home/fumu/conda_disk/baiduwangpan/无人机违建_test/test_2"
@@ -25,23 +26,38 @@ PAIRS = [
 ]
 
 MONTH_CN = {
-    "January": "1月", "Jan": "1月",
-    "February": "2月", "Feb": "2月",
-    "March": "3月", "Mar": "3月",
-    "April": "4月", "Apr": "4月",
+    "January": "1月",
+    "Jan": "1月",
+    "February": "2月",
+    "Feb": "2月",
+    "March": "3月",
+    "Mar": "3月",
+    "April": "4月",
+    "Apr": "4月",
     "May": "5月",
-    "June": "6月", "Jun": "6月",
-    "July": "7月", "Jul": "7月",
-    "August": "8月", "Aug": "8月",
-    "September": "9月", "Sep": "9月",
-    "October": "10月", "Oct": "10月",
-    "November": "11月", "Nov": "11月",
-    "December": "12月", "Dec": "12月",
+    "June": "6月",
+    "Jun": "6月",
+    "July": "7月",
+    "Jul": "7月",
+    "August": "8月",
+    "Aug": "8月",
+    "September": "9月",
+    "Sep": "9月",
+    "October": "10月",
+    "Oct": "10月",
+    "November": "11月",
+    "Nov": "11月",
+    "December": "12月",
+    "Dec": "12月",
 }
 
 LOCATION_CN = {
-    "naiqiong": "乃琼", "yangda": "羊达", "dongga": "东嘎",
-    "gurong": "古荣", "niedang": "尼达", "qushui": "曲水",
+    "naiqiong": "乃琼",
+    "yangda": "羊达",
+    "dongga": "东嘎",
+    "gurong": "古荣",
+    "niedang": "尼达",
+    "qushui": "曲水",
     "deqing": "德庆",
 }
 
@@ -71,6 +87,7 @@ def read_tiff(path):
     if img is not None:
         return img
     import tifffile
+
     img = tifffile.imread(path)
     if img.ndim == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
@@ -90,11 +107,13 @@ def detect_buildings(model, img_path, imgsz):
             cls_name = model.names[cls_id]
             xyxy = box.xyxy[0].tolist()
             conf = float(box.conf[0])
-            boxes.append({
-                "class": cls_name,
-                "bbox": [round(v, 1) for v in xyxy],
-                "conf": round(conf, 3),
-            })
+            boxes.append(
+                {
+                    "class": cls_name,
+                    "bbox": [round(v, 1) for v in xyxy],
+                    "conf": round(conf, 3),
+                }
+            )
     return boxes
 
 
@@ -140,12 +159,14 @@ def find_changes(boxes_a, boxes_b, iou_threshold=0.3, center_dist_threshold=None
             continue
         matched_a.add(i)
         matched_b.add(j)
-        matches.append({
-            "box_a": boxes_a[i],
-            "box_b": boxes_b[j],
-            "iou": round(iou, 3),
-            "center_dist": round(dist, 1),
-        })
+        matches.append(
+            {
+                "box_a": boxes_a[i],
+                "box_b": boxes_b[j],
+                "iou": round(iou, 3),
+                "center_dist": round(dist, 1),
+            }
+        )
 
     new_buildings = [boxes_b[j] for j in range(len(boxes_b)) if j not in matched_b]
     disappeared = [boxes_a[i] for i in range(len(boxes_a)) if i not in matched_a]
@@ -153,8 +174,20 @@ def find_changes(boxes_a, boxes_b, iou_threshold=0.3, center_dist_threshold=None
     return matches, new_buildings, disappeared
 
 
-def draw_comparison(img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disappeared,
-                    save_path, version, time_a, time_b, thumb_size=2000):
+def draw_comparison(
+    img_a,
+    img_b,
+    boxes_a,
+    boxes_b,
+    matches,
+    new_buildings,
+    disappeared,
+    save_path,
+    version,
+    time_a,
+    time_b,
+    thumb_size=2000,
+):
     h0, w0 = img_a.shape[:2]
     scale = thumb_size / max(w0, h0)
     thumb_w = int(w0 * scale)
@@ -163,10 +196,8 @@ def draw_comparison(img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disa
     img_b_thumb = cv2.resize(img_b, (thumb_w, thumb_h))
 
     canvas = cv2.hconcat([img_a_thumb, img_b_thumb])
-    cv2.putText(canvas, f"[{version}] {time_a}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-    cv2.putText(canvas, f"[{version}] {time_b}", (thumb_w + 10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+    cv2.putText(canvas, f"[{version}] {time_a}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    cv2.putText(canvas, f"[{version}] {time_b}", (thumb_w + 10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
     matched_b_indices = set()
     for match in matches:
@@ -182,8 +213,7 @@ def draw_comparison(img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disa
             color = (0, 255, 0)
             label = f"A:{ba['class']}"
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(canvas, label, (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, color, max(1, int(scale)))
+        cv2.putText(canvas, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, color, max(1, int(scale)))
 
     for bb in boxes_b:
         x1, y1, x2, y2 = [int(v * scale) for v in bb["bbox"]]
@@ -199,12 +229,18 @@ def draw_comparison(img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disa
             color = (255, 255, 0)
             label = f"B:{bb['class']}"
         cv2.rectangle(canvas, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(canvas, label, (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, color, max(1, int(scale)))
+        cv2.putText(canvas, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5 * scale, color, max(1, int(scale)))
 
     legend_y = canvas.shape[0] - 20
-    cv2.putText(canvas, "Green=A period  Yellow=Still exists  Red=NEW!  Purple=GONE(A only)",
-                (10, legend_y), cv2.FONT_HERSHEY_SIMPLEX, 0.45 * scale, (255, 255, 255), max(1, int(scale)))
+    cv2.putText(
+        canvas,
+        "Green=A period  Yellow=Still exists  Red=NEW!  Purple=GONE(A only)",
+        (10, legend_y),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45 * scale,
+        (255, 255, 255),
+        max(1, int(scale)),
+    )
 
     cv2.imwrite(save_path, canvas)
 
@@ -220,7 +256,7 @@ def main():
 
     model = YOLO(model_path)
     all_lines = []
-    header = f"\n{'='*60}\n使用模型: {ACTIVE_MODEL}  权重: {model_path}\n推理尺寸: {IMGSZ}\n输出目录: {output_dir}\n{'='*60}"
+    header = f"\n{'=' * 60}\n使用模型: {ACTIVE_MODEL}  权重: {model_path}\n推理尺寸: {IMGSZ}\n输出目录: {output_dir}\n{'=' * 60}"
     print(header)
     all_lines.append(header)
 
@@ -243,8 +279,9 @@ def main():
         matches, new_buildings, disappeared = find_changes(boxes_a, boxes_b)
 
         save_path = os.path.join(output_dir, f"{pair_name}.png")
-        draw_comparison(img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disappeared,
-                        save_path, ACTIVE_MODEL, time_a, time_b)
+        draw_comparison(
+            img_a, img_b, boxes_a, boxes_b, matches, new_buildings, disappeared, save_path, ACTIVE_MODEL, time_a, time_b
+        )
 
         lines = []
         lines.append(f"\n  [{ACTIVE_MODEL}] 对比: {time_a} vs {time_b}")
@@ -258,7 +295,9 @@ def main():
         for db in disappeared:
             lines.append(f"      消失建筑: {db['class']} conf={db['conf']} bbox={db['bbox']}")
         for match in matches:
-            lines.append(f"      匹配建筑: {match['box_a']['class']} -> {match['box_b']['class']} IOU={match['iou']} 中心距离={match['center_dist']}")
+            lines.append(
+                f"      匹配建筑: {match['box_a']['class']} -> {match['box_b']['class']} IOU={match['iou']} 中心距离={match['center_dist']}"
+            )
         lines.append(f"    保存: {save_path}")
 
         for line in lines:
