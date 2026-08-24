@@ -1,10 +1,12 @@
-import os
 import logging
-import numpy as np
+import os
+
 import cv2
+import numpy as np
 
 try:
     from osgeo import gdal, ogr, osr
+
     gdal.UseExceptions()
     HAS_GDAL = True
 except ImportError:
@@ -12,6 +14,7 @@ except ImportError:
 
 try:
     import tifffile
+
     HAS_TIFFFILE = True
 except ImportError:
     HAS_TIFFFILE = False
@@ -60,19 +63,19 @@ def warp_to_overlap(src_path, bounds, target_res, out_path):
     n_bands = ds_src.RasterCount
     ds_src = None
 
-    warp_kwargs = dict(
-        format='GTiff',
-        outputBounds=(xmin, ymin, xmax, ymax),
-        xRes=target_res,
-        yRes=target_res,
-        resampleAlg='bilinear',
-        outputType=gdal.GDT_Byte,
-        creationOptions=['COMPRESS=LZW', 'BIGTIFF=YES', 'TILED=YES', 'PHOTOMETRIC=RGB'],
-    )
+    warp_kwargs = {
+        "format": "GTiff",
+        "outputBounds": (xmin, ymin, xmax, ymax),
+        "xRes": target_res,
+        "yRes": target_res,
+        "resampleAlg": "bilinear",
+        "outputType": gdal.GDT_Byte,
+        "creationOptions": ["COMPRESS=LZW", "BIGTIFF=YES", "TILED=YES", "PHOTOMETRIC=RGB"],
+    }
 
     if src_nodata is not None:
-        warp_kwargs['srcNodata'] = [src_nodata] * n_bands
-        warp_kwargs['dstNodata'] = [0] * n_bands
+        warp_kwargs["srcNodata"] = [src_nodata] * n_bands
+        warp_kwargs["dstNodata"] = [0] * n_bands
 
     opts = gdal.WarpOptions(**warp_kwargs)
     result = gdal.Warp(out_path, src_path, options=opts)
@@ -166,7 +169,7 @@ def write_geotiff(out_path, data, gt, crs, dtype=None):
     if dtype is None:
         dtype = gdal.GDT_Byte
 
-    driver = gdal.GetDriverByName('GTiff')
+    driver = gdal.GetDriverByName("GTiff")
     if data.ndim == 2:
         h, w = data.shape
         bands = 1
@@ -174,9 +177,9 @@ def write_geotiff(out_path, data, gt, crs, dtype=None):
         h, w = data.shape[:2]
         bands = data.shape[2]
 
-    creation_opts = ['COMPRESS=LZW', 'BIGTIFF=YES', 'TILED=YES']
+    creation_opts = ["COMPRESS=LZW", "BIGTIFF=YES", "TILED=YES"]
     if bands >= 3:
-        creation_opts.append('PHOTOMETRIC=RGB')
+        creation_opts.append("PHOTOMETRIC=RGB")
     ds = driver.Create(out_path, w, h, bands, dtype, options=creation_opts)
     if gt is not None:
         ds.SetGeoTransform(gt)
@@ -280,4 +283,5 @@ def _make_pixel_to_geo(gt):
         gx = gt[0] + px * gt[1] + py * gt[2]
         gy = gt[3] + px * gt[4] + py * gt[5]
         return gx, gy
+
     return transform

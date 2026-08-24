@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from pathlib import Path
 
 os.environ["YOLO_OFFLINE"] = "True"
@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from flask import Flask
 from flask_cors import CORS
+
 from .config import Config
 from .routes.change_routes import image_bp
 
