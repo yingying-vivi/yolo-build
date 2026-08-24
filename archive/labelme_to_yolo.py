@@ -1,15 +1,18 @@
 import json
 import os
-import re
 import random
+import re
 import shutil
 from pathlib import Path
+
 SRC_DIR = Path("/home/fumu/datasets/无人机分割数据集")
 DST_DIR = Path("/home/fumu/datasets/drone_seg_dataset")
 TRAIN_RATIO = 0.8
 CLASS_MAP = {
     "building": 0,
 }
+
+
 def get_time_group(filename):
     name = filename.replace(".json", "")
     m = re.match(r"(dongga|naiqiong|yangda|gurong|niedang)(.*)", name)
@@ -24,8 +27,10 @@ def get_time_group(filename):
     if m3:
         return f"other_{m3.group(1)}"
     return "other"
+
+
 def convert_one(json_path):
-    data = json.load(open(json_path, "r"))
+    data = json.load(open(json_path))
     img_w = data["imageWidth"]
     img_h = data["imageHeight"]
     lines = []
@@ -43,6 +48,8 @@ def convert_one(json_path):
         if len(coords) >= 3:
             lines.append(f"{cls_id} " + " ".join(coords))
     return lines
+
+
 def find_image(json_path):
     jf = json_path.name
     base = jf.replace(".json", "")
@@ -51,6 +58,8 @@ def find_image(json_path):
         if candidate.exists():
             return candidate
     return None
+
+
 def main():
     for sub in ["images/train", "images/val", "labels/train", "labels/val"]:
         (DST_DIR / sub).mkdir(parents=True, exist_ok=True)
@@ -67,7 +76,7 @@ def main():
         split_idx = int(len(files) * TRAIN_RATIO)
         train_files.extend(files[:split_idx])
         val_files.extend(files[split_idx:])
-        print(f"  {grp}: total={len(files)}, train={split_idx}, val={len(files)-split_idx}")
+        print(f"  {grp}: total={len(files)}, train={split_idx}, val={len(files) - split_idx}")
     skipped = 0
     for phase, files in [("train", train_files), ("val", val_files)]:
         for jf in files:
@@ -88,5 +97,7 @@ def main():
             shutil.copy2(img_src, img_dst)
     print(f"\nTrain: {len(train_files)}, Val: {len(val_files)}, Skipped: {skipped}")
     print(f"Dataset created at: {DST_DIR}")
+
+
 if __name__ == "__main__":
     main()
