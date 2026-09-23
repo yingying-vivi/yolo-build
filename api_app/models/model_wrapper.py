@@ -1,16 +1,19 @@
+from __future__ import annotations
+
 import logging
 import os
-import numpy as np
-import cv2
 import time
-from typing import Dict, List, Optional
+
+import cv2
+import numpy as np
+
 from ultralytics import YOLO
 
 logger = logging.getLogger(__name__)
 
 
 class YoloSegModel:
-    def __init__(self, model_path: str, device: str = None):
+    def __init__(self, model_path: str, device: str | None = None):
         self.model_path = model_path
         self.device = device or ("cuda:0" if self._cuda_available() else "cpu")
         self.yolo_model = None
@@ -19,6 +22,7 @@ class YoloSegModel:
     def _cuda_available(self):
         try:
             import torch
+
             return torch.cuda.is_available()
         except ImportError:
             return False
@@ -31,8 +35,7 @@ class YoloSegModel:
         self.yolo_model = YOLO(self.model_path)
         logger.info("YOLO 分割模型加载成功")
 
-    def predict(self, image, conf_threshold: float = 0.5,
-                classes: Optional[List[int]] = None) -> Dict:
+    def predict(self, image, conf_threshold: float = 0.5, classes: list[int] | None = None) -> dict:
         results = self.yolo_model(image, conf=conf_threshold, classes=classes, verbose=False)
 
         boxes_list = []
@@ -55,7 +58,7 @@ class YoloSegModel:
                 if r.masks is not None and i < len(r.masks):
                     mask_np = r.masks.data[i].cpu().numpy()
                     try:
-                        if hasattr(r.masks, 'xy') and len(r.masks.xy) > i:
+                        if hasattr(r.masks, "xy") and len(r.masks.xy) > i:
                             mask_poly = r.masks.xy[i].copy()
                     except Exception:
                         mask_poly = None
@@ -76,8 +79,7 @@ class YoloSegModel:
         }
 
 
-def detect_tiled(model: YoloSegModel, img: np.ndarray,
-                 tile_size: int, stride: int, conf_thresh: float) -> List[Dict]:
+def detect_tiled(model: YoloSegModel, img: np.ndarray, tile_size: int, stride: int, conf_thresh: float) -> list[dict]:
     h, w = img.shape[:2]
     positions = _tile_positions(h, w, tile_size, stride)
     logger.info(f"图片 {w}x{h}, 切片数 {len(positions)}")
@@ -86,7 +88,7 @@ def detect_tiled(model: YoloSegModel, img: np.ndarray,
     t0 = time.time()
 
     for idx, (y0, x0) in enumerate(positions):
-        tile = img[y0:y0 + tile_size, x0:x0 + tile_size]
+        tile = img[y0 : y0 + tile_size, x0 : x0 + tile_size]
         th, tw = tile.shape[:2]
         pad_h = tile_size - th
         pad_w = tile_size - tw
@@ -121,13 +123,15 @@ def detect_tiled(model: YoloSegModel, img: np.ndarray,
                     poly[:, 1] = np.clip(poly[:, 1], 0, h)
                 mask_poly = poly
 
-            all_dets.append({
-                "class": result["classes"][i],
-                "bbox": bbox,
-                "conf": result["confidences"][i],
-                "mask": result["masks"][i],
-                "mask_poly": mask_poly,
-            })
+            all_dets.append(
+                {
+                    "class": result["classes"][i],
+                    "bbox": bbox,
+                    "conf": result["confidences"][i],
+                    "mask": result["masks"][i],
+                    "mask_poly": mask_poly,
+                }
+            )
 
         if (idx + 1) % 50 == 0 or idx == len(positions) - 1:
             elapsed = time.time() - t0
@@ -149,7 +153,7 @@ def _tile_positions(h, w, tile_size, stride):
     return [(y, x) for y in ys for x in xs]
 
 
-def nms(detections: List[Dict], iou_thresh: float) -> List[Dict]:
+def nms(detections: list[dict], iou_thresh: float) -> list[dict]:
     if not detections:
         return []
     dets = sorted(detections, key=lambda d: -d["conf"])

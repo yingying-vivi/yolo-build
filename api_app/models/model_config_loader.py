@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import json
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Optional, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ModelConfigLoader:
     def _load(self):
         for encoding in ("utf-8", "utf-8-sig", "gbk"):
             try:
-                with open(self.config_path, "r", encoding=encoding) as f:
+                with open(self.config_path, encoding=encoding) as f:
                     self._config = json.load(f)
                 break
             except (UnicodeDecodeError, json.JSONDecodeError):
@@ -45,7 +46,7 @@ class ModelConfigLoader:
                         resolved = os.path.normpath(os.path.join(project_root, p))
                         model[key] = resolved
 
-    def get_default_model(self) -> Optional[Dict]:
+    def get_default_model(self) -> dict | None:
         models = self._config.get("models", [])
         for m in models:
             if m.get("type") == "yolo_seg":
@@ -54,17 +55,17 @@ class ModelConfigLoader:
             return models[0]
         return None
 
-    def get_model_by_id(self, model_id: str) -> Optional[Dict]:
+    def get_model_by_id(self, model_id: str) -> dict | None:
         for m in self._config.get("models", []):
             if m.get("id") == model_id:
                 return m
         return None
 
-    def get_yolo_seg_model_path(self) -> Optional[str]:
+    def get_yolo_seg_model_path(self) -> str | None:
         m = self.get_default_model()
         if m:
             return m.get("yolo_path") or m.get("path")
         return None
 
-    def list_models(self) -> List[Dict]:
+    def list_models(self) -> list[dict]:
         return self._config.get("models", [])
