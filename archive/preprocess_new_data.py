@@ -1,10 +1,10 @@
+import base64
 import json
 import os
 import random
-import base64
 import shutil
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 SRC_DIRS = [
     Path("/home/fumu/datadisk/标注区域划分/堆龙东嘎"),
@@ -25,7 +25,7 @@ CLASS_MAP = {
 
 
 def convert_labelme_to_yolo(json_path):
-    d = json.load(open(json_path, "r"))
+    d = json.load(open(json_path))
     img_w = d["imageWidth"]
     img_h = d["imageHeight"]
     lines = []
@@ -101,14 +101,14 @@ def main():
 
     splits = {
         "train": all_samples[:n_train],
-        "val": all_samples[n_train:n_train + n_val],
-        "test": all_samples[n_train + n_val:],
+        "val": all_samples[n_train : n_train + n_val],
+        "test": all_samples[n_train + n_val :],
     }
 
     print(f"\nTotal valid samples: {n}")
     print(f"Train: {n_train}, Val: {n_val}, Test: {n_test}")
     print(f"Skipped (empty labels): {skipped_empty}, Skipped (no image): {skipped_noimg}")
-    print(f"\nLabel distribution:")
+    print("\nLabel distribution:")
     for label, count in label_counter.most_common():
         print(f"  {label}: {count}")
 

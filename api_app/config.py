@@ -38,8 +38,11 @@ class Config:
     @staticmethod
     def ensure_dirs():
         dirs = [
-            Config.UPLOAD_DIR, Config.RESULT_DIR, Config.TEMP_DIR,
-            Config.API_RESULTS_DIR, Config.LOG_DIR,
+            Config.UPLOAD_DIR,
+            Config.RESULT_DIR,
+            Config.TEMP_DIR,
+            Config.API_RESULTS_DIR,
+            Config.LOG_DIR,
         ]
         for d in dirs:
             os.makedirs(d, exist_ok=True)
@@ -59,9 +62,7 @@ class Config:
             encoding="utf-8",
         )
         handler.setLevel(logging.INFO)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         app.logger.addHandler(handler)
         app.logger.setLevel(logging.INFO)
