@@ -1,11 +1,11 @@
+import base64
 import json
 import os
-import re
 import random
-import base64
+import re
 import shutil
-from pathlib import Path
 from collections import Counter, defaultdict
+from pathlib import Path
 
 NEW_DATA_DIRS = [
     Path("/home/fumu/datadisk/标注区域划分/堆龙东嘎"),
@@ -31,7 +31,7 @@ LOC_LIST = ["naiqiong", "yangda", "dongga", "gurong", "niedang", "qushui", "deqi
 
 
 def convert_labelme_to_yolo(json_path, class_map):
-    d = json.load(open(json_path, "r"))
+    d = json.load(open(json_path))
     img_w = d["imageWidth"]
     img_h = d["imageHeight"]
     lines = []
@@ -145,10 +145,10 @@ def main():
 
     CLASS_NAMES = {0: "building", 1: "car"}
     print(f"总标注: {total_shapes}")
-    print(f"过滤(<{MIN_POINTS}点): {total_filtered} ({total_filtered/total_shapes*100:.1f}%)")
+    print(f"过滤(<{MIN_POINTS}点): {total_filtered} ({total_filtered / total_shapes * 100:.1f}%)")
     print(f"保留: {total_shapes - total_filtered}")
     print(f"空标签: {skipped_empty}")
-    print(f"\n类别:")
+    print("\n类别:")
     for cls_id, count in label_counter.most_common():
         print(f"  {CLASS_NAMES[cls_id]}: {count}")
 
