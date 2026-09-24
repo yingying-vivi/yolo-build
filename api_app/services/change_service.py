@@ -1,18 +1,26 @@
-import os
+from __future__ import annotations
+
 import json
 import logging
+import os
 import time
-import numpy as np
-import cv2
 from pathlib import Path
 
-from ..models.model_wrapper import YoloSegModel, detect_tiled, nms, compute_iou
+import cv2
+import numpy as np
+
 from ..models.model_config_loader import ModelConfigLoader
-from ..utils.image_utils import (
-    get_overlap_bounds, warp_to_overlap, read_as_bgr_uint8,
-    crop_black_border, write_geotiff, write_changes_to_shapefile, HAS_GDAL,
-)
+from ..models.model_wrapper import YoloSegModel, compute_iou, detect_tiled, nms
 from ..utils.file_utils import zip_shapefile
+from ..utils.image_utils import (
+    HAS_GDAL,
+    crop_black_border,
+    get_overlap_bounds,
+    read_as_bgr_uint8,
+    warp_to_overlap,
+    write_changes_to_shapefile,
+    write_geotiff,
+)
 
 if HAS_GDAL:
     from osgeo import gdal
@@ -21,12 +29,11 @@ logger = logging.getLogger(__name__)
 
 
 class ChangeDetectionService:
-
     def run_change_detection(
         self,
         t1_path: str,
         t2_path: str,
-        model_path: str = None,
+        model_path: str | None = None,
         confidence_threshold: float = 0.5,
         nms_iou_threshold: float = 0.5,
         match_iou_threshold: float = 0.3,
@@ -35,8 +42,8 @@ class ChangeDetectionService:
         stride: int = 800,
         target_res: float = 0.2,
         vis_tile_size: int = 1024,
-        output_dir: str = None,
-        task_id: str = None,
+        output_dir: str | None = None,
+        task_id: str | None = None,
     ) -> dict:
         t_start = time.time()
 
@@ -44,6 +51,7 @@ class ChangeDetectionService:
             output_dir = os.path.join(os.path.dirname(__file__), "..", "api_results")
         if task_id is None:
             import uuid
+
             task_id = uuid.uuid4().hex
 
         task_dir = os.path.join(output_dir, task_id)
@@ -60,8 +68,10 @@ class ChangeDetectionService:
         logger.info(f"检测期: {t2_path}")
         logger.info(f"模型: {model_path}")
         logger.info(f"输出: {task_dir}")
-        logger.info(f"置信度={confidence_threshold}, NMS IoU={nms_iou_threshold}, "
-                    f"匹配IoU={match_iou_threshold}, 面积变化阈值={area_change_threshold}")
+        logger.info(
+            f"置信度={confidence_threshold}, NMS IoU={nms_iou_threshold}, "
+            f"匹配IoU={match_iou_threshold}, 面积变化阈值={area_change_threshold}"
+        )
 
         warp_res = target_res
         bounds = None
@@ -82,7 +92,9 @@ class ChangeDetectionService:
                 ds1_info = None
                 pixel_size = abs(gt1_src[1])
                 if pixel_size < 0.01 and target_res > 0.01:
-                    logger.info(f"影像为经纬度坐标(像素={pixel_size}), target_res={target_res}度过大, 自动调整为源影像分辨率")
+                    logger.info(
+                        f"影像为经纬度坐标(像素={pixel_size}), target_res={target_res}度过大, 自动调整为源影像分辨率"
+                    )
                     warp_res = pixel_size
                 else:
                     logger.info(f"影像为投影坐标(像素={pixel_size}), 使用target_res={target_res}")
@@ -114,7 +126,7 @@ class ChangeDetectionService:
         if arr1 is None:
             logger.info("直接读取影像（不经过GDAL配准）...")
             arr1, gt_out, crs_out = read_as_bgr_uint8(t1_path)
-            arr2, gt2, crs2 = read_as_bgr_uint8(t2_path)
+            arr2, _gt2, _crs2 = read_as_bgr_uint8(t2_path)
             bounds = None
 
         logger.info(f"影像尺寸: T1={arr1.shape}, T2={arr2.shape}")
@@ -131,9 +143,7 @@ class ChangeDetectionService:
         det2 = nms(raw_dets2, nms_iou_threshold)
 
         logger.info("[7] 变化检测匹配...")
-        matches, new_buildings, disappeared = self._find_changes(
-            det1, det2, match_iou_threshold
-        )
+        matches, new_buildings, disappeared = self._find_changes(det1, det2, match_iou_threshold)
 
         logger.info(f"基期建筑物: {len(det1)}")
         logger.info(f"检测期建筑物: {len(det2)}")
@@ -141,10 +151,7 @@ class ChangeDetectionService:
         logger.info(f"新增建筑物: {len(new_buildings)}")
         logger.info(f"消失建筑物: {len(disappeared)}")
 
-        changes_dict = self._classify_changes(
-            matches, new_buildings, disappeared, det1, det2,
-            area_change_threshold
-        )
+        changes_dict = self._classify_changes(matches, new_buildings, disappeared, det1, det2, area_change_threshold)
 
         logger.info("[8] 保存变化结果JSON...")
         json_path = os.path.join(task_dir, f"instance_changes_{task_id}.json")
@@ -152,22 +159,14 @@ class ChangeDetectionService:
             json.dump(changes_dict, f, ensure_ascii=False, indent=2)
 
         logger.info("[9] 生成切片对比图...")
-        self._create_comparison_tiles(
-            arr1, arr2, det1, matches, new_buildings, disappeared,
-            task_dir, vis_tile_size
-        )
+        self._create_comparison_tiles(arr1, arr2, det1, matches, new_buildings, disappeared, task_dir, vis_tile_size)
 
         logger.info("[10] 生成总览图...")
-        self._create_overview(
-            arr1, arr2, det1, matches, new_buildings, disappeared,
-            task_dir
-        )
+        self._create_overview(arr1, arr2, det1, matches, new_buildings, disappeared, task_dir)
 
         logger.info("[11] 保存新增建筑物掩膜GeoTIFF...")
         try:
-            self._save_new_buildings_mask(
-                new_buildings, arr2, gt_out, crs_out, task_dir
-            )
+            self._save_new_buildings_mask(new_buildings, arr2, gt_out, crs_out, task_dir)
         except Exception as e:
             logger.warning(f"保存掩膜GeoTIFF失败(不影响主流程): {e}")
 
@@ -176,22 +175,32 @@ class ChangeDetectionService:
         zip_path = None
         if HAS_GDAL and gt_out is not None:
             try:
-                shp_dir = write_changes_to_shapefile(
-                    changes_dict, gt_out, crs_out, task_dir, task_id
-                )
+                shp_dir = write_changes_to_shapefile(changes_dict, gt_out, crs_out, task_dir, task_id)
                 if shp_dir:
-                    zip_path = zip_shapefile(
-                        shp_dir, os.path.join(task_dir, f"instance_changes_{task_id}.zip")
-                    )
+                    zip_path = zip_shapefile(shp_dir, os.path.join(task_dir, f"instance_changes_{task_id}.zip"))
             except Exception as e:
                 logger.warning(f"生成Shapefile失败(不影响主流程): {e}")
 
         logger.info("[13] 生成报告...")
         report = self._generate_report(
-            t1_path, t2_path, model_path, confidence_threshold,
-            nms_iou_threshold, match_iou_threshold, area_change_threshold,
-            tile_size, stride, arr1, det1, det2, matches,
-            new_buildings, disappeared, bounds, task_id, t_start
+            t1_path,
+            t2_path,
+            model_path,
+            confidence_threshold,
+            nms_iou_threshold,
+            match_iou_threshold,
+            area_change_threshold,
+            tile_size,
+            stride,
+            arr1,
+            det1,
+            det2,
+            matches,
+            new_buildings,
+            disappeared,
+            bounds,
+            task_id,
+            t_start,
         )
         report_path = os.path.join(task_dir, "detect_report.txt")
         with open(report_path, "w", encoding="utf-8") as f:
@@ -234,25 +243,28 @@ class ChangeDetectionService:
         disappeared = [det_a[i] for i in range(len(det_a)) if i not in matched_a]
         return matches, new_buildings, disappeared
 
-    def _classify_changes(self, matches, new_buildings, disappeared,
-                          det1, det2, area_change_threshold=0.2):
+    def _classify_changes(self, matches, new_buildings, disappeared, det1, det2, area_change_threshold=0.2):
         changes = []
 
         for nb in new_buildings:
-            changes.append({
-                "type": "new",
-                "bbox": nb["bbox"],
-                "confidence": nb.get("conf", 1.0),
-                "class": nb.get("class", "Building"),
-            })
+            changes.append(
+                {
+                    "type": "new",
+                    "bbox": nb["bbox"],
+                    "confidence": nb.get("conf", 1.0),
+                    "class": nb.get("class", "Building"),
+                }
+            )
 
         for da in disappeared:
-            changes.append({
-                "type": "removed",
-                "bbox": da["bbox"],
-                "confidence": da.get("conf", 1.0),
-                "class": da.get("class", "Building"),
-            })
+            changes.append(
+                {
+                    "type": "removed",
+                    "bbox": da["bbox"],
+                    "confidence": da.get("conf", 1.0),
+                    "class": da.get("class", "Building"),
+                }
+            )
 
         for match in matches:
             box_a = match["box_a"]
@@ -262,15 +274,17 @@ class ChangeDetectionService:
             area_change_ratio = abs(area_b - area_a) / area_a if area_a > 0 else 0.0
 
             if area_change_ratio > area_change_threshold:
-                changes.append({
-                    "type": "expanded",
-                    "bbox": box_b["bbox"],
-                    "confidence": box_b.get("conf", 1.0),
-                    "area_t1": round(area_a, 1),
-                    "area_t2": round(area_b, 1),
-                    "area_change_ratio": round(area_change_ratio, 3),
-                    "class": box_b.get("class", "Building"),
-                })
+                changes.append(
+                    {
+                        "type": "expanded",
+                        "bbox": box_b["bbox"],
+                        "confidence": box_b.get("conf", 1.0),
+                        "area_t1": round(area_a, 1),
+                        "area_t2": round(area_b, 1),
+                        "area_change_ratio": round(area_change_ratio, 3),
+                        "class": box_b.get("class", "Building"),
+                    }
+                )
 
         result = {
             "total_changes": len(changes),
@@ -282,20 +296,21 @@ class ChangeDetectionService:
             "t2_detection_count": len(det2),
             "changes": changes,
         }
-        logger.info(f"变化分类完成: 新建{result['new_count']}, "
-                    f"移除{result['removed_count']}, 扩张{result['expanded_count']}")
+        logger.info(
+            f"变化分类完成: 新建{result['new_count']}, 移除{result['removed_count']}, 扩张{result['expanded_count']}"
+        )
         return result
 
-    def _create_comparison_tiles(self, arr1, arr2, det1, matches,
-                                  new_buildings, disappeared,
-                                  output_dir, vis_tile_size):
+    def _create_comparison_tiles(
+        self, arr1, arr2, det1, matches, new_buildings, disappeared, output_dir, vis_tile_size
+    ):
         h, w = arr1.shape[:2]
         tile_dir = os.path.join(output_dir, "comparison_tiles")
         Path(tile_dir).mkdir(parents=True, exist_ok=True)
 
-        matched_b_ids = {id(m["box_b"]) for m in matches}
+        {id(m["box_b"]) for m in matches}
         disappeared_ids = {id(d) for d in disappeared}
-        new_ids = {id(nb) for nb in new_buildings}
+        {id(nb) for nb in new_buildings}
 
         n_rows = h // vis_tile_size
         n_cols = w // vis_tile_size
@@ -312,8 +327,8 @@ class ChangeDetectionService:
         total = len(positions)
 
         for idx, (y0, x0, row_idx, col_idx) in enumerate(positions):
-            crop1 = arr1[y0:y0 + vis_tile_size, x0:x0 + vis_tile_size]
-            crop2 = arr2[y0:y0 + vis_tile_size, x0:x0 + vis_tile_size]
+            crop1 = arr1[y0 : y0 + vis_tile_size, x0 : x0 + vis_tile_size]
+            crop2 = arr2[y0 : y0 + vis_tile_size, x0 : x0 + vis_tile_size]
             tile_bbox = [x0, y0, x0 + vis_tile_size, y0 + vis_tile_size]
 
             canvas_a = crop1.copy()
@@ -334,8 +349,7 @@ class ChangeDetectionService:
                 y2t = min(vis_tile_size, int(da["bbox"][3]) - y0)
                 cv2.rectangle(canvas_a, (x1t, y1t), (x2t, y2t), color, 2)
                 if label:
-                    cv2.putText(canvas_a, label, (x1t, max(12, y1t - 8)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1)
+                    cv2.putText(canvas_a, label, (x1t, max(12, y1t - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 1)
                 if is_disappeared:
                     tile_has_change = True
 
@@ -350,8 +364,7 @@ class ChangeDetectionService:
                 x2t = min(vis_tile_size, int(nb["bbox"][2]) - x0)
                 y2t = min(vis_tile_size, int(nb["bbox"][3]) - y0)
                 cv2.rectangle(canvas_b, (x1t, y1t), (x2t, y2t), color, 3)
-                cv2.putText(canvas_b, "NEW!", (x1t, max(12, y1t - 8)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+                cv2.putText(canvas_b, "NEW!", (x1t, max(12, y1t - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
                 tile_has_change = True
 
             for m in matches:
@@ -368,12 +381,17 @@ class ChangeDetectionService:
                 cv2.rectangle(canvas_b, (x1t, y1t), (x2t, y2t), color, 2)
 
             comparison = cv2.hconcat([canvas_a, canvas_b])
-            cv2.line(comparison, (vis_tile_size, 0), (vis_tile_size, vis_tile_size),
-                     (255, 255, 255), 2)
-            cv2.putText(comparison, "基期(第一期)", (10, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            cv2.putText(comparison, "检测期(第二期)", (vis_tile_size + 10, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.line(comparison, (vis_tile_size, 0), (vis_tile_size, vis_tile_size), (255, 255, 255), 2)
+            cv2.putText(comparison, "基期(第一期)", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(
+                comparison,
+                "检测期(第二期)",
+                (vis_tile_size + 10, 25),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 255, 255),
+                2,
+            )
 
             change_tag = "_change" if tile_has_change else ""
             tile_path = os.path.join(tile_dir, f"tile_r{row_idx}_c{col_idx}{change_tag}.png")
@@ -385,8 +403,7 @@ class ChangeDetectionService:
         logger.info(f"对比切片生成完成: 有变化={has_change_tiles}/{total}")
         return tile_dir, has_change_tiles, total
 
-    def _create_overview(self, arr1, arr2, det1, matches,
-                          new_buildings, disappeared, output_dir, scale=0.1):
+    def _create_overview(self, arr1, arr2, det1, matches, new_buildings, disappeared, output_dir, scale=0.1):
         h, w = arr1.shape[:2]
         new_w = int(w * scale)
         new_h = int(h * scale)
@@ -400,8 +417,7 @@ class ChangeDetectionService:
         for nb in new_buildings:
             x1, y1, x2, y2 = [int(v * scale) for v in nb["bbox"]]
             cv2.rectangle(thumb2, (x1, y1), (x2, y2), (0, 0, 255), 2)
-            cv2.putText(thumb2, "NEW", (x1, max(8, y1 - 5)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
+            cv2.putText(thumb2, "NEW", (x1, max(8, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255), 1)
 
         for da in disappeared:
             x1, y1, x2, y2 = [int(v * scale) for v in da["bbox"]]
@@ -414,12 +430,17 @@ class ChangeDetectionService:
 
         overview = cv2.hconcat([thumb1, thumb2])
         cv2.line(overview, (new_w, 0), (new_w, new_h), (255, 255, 255), 3)
-        cv2.putText(overview, "基期(第一期)", (10, 20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        cv2.putText(overview, "检测期(第二期)", (new_w + 10, 20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-        cv2.putText(overview, "Red=NEW! Purple=GONE Green=Existing",
-                    (10, new_h - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+        cv2.putText(overview, "基期(第一期)", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(overview, "检测期(第二期)", (new_w + 10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        cv2.putText(
+            overview,
+            "Red=NEW! Purple=GONE Green=Existing",
+            (10, new_h - 15),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            (255, 255, 255),
+            1,
+        )
 
         overview_path = os.path.join(output_dir, "overview_comparison.png")
         cv2.imwrite(overview_path, overview)
@@ -433,7 +454,7 @@ class ChangeDetectionService:
                 cv2.fillPoly(new_mask, [nb["mask_poly"].astype(np.int32)], 255)
             else:
                 x1, y1, x2, y2 = [int(v) for v in nb["bbox"]]
-                new_mask[max(0, y1):y2, max(0, x1):x2] = 255
+                new_mask[max(0, y1) : y2, max(0, x1) : x2] = 255
 
         mask_path = os.path.join(task_dir, "new_buildings_mask.tif")
         if HAS_GDAL:
@@ -441,10 +462,27 @@ class ChangeDetectionService:
         else:
             cv2.imwrite(mask_path, new_mask)
 
-    def _generate_report(self, t1_path, t2_path, model_path, conf_thresh,
-                          nms_iou, match_iou, area_thresh, tile_size, stride,
-                          arr1, det1, det2, matches, new_buildings, disappeared,
-                          bounds, task_id, t_start):
+    def _generate_report(
+        self,
+        t1_path,
+        t2_path,
+        model_path,
+        conf_thresh,
+        nms_iou,
+        match_iou,
+        area_thresh,
+        tile_size,
+        stride,
+        arr1,
+        det1,
+        det2,
+        matches,
+        new_buildings,
+        disappeared,
+        bounds,
+        task_id,
+        t_start,
+    ):
         elapsed = time.time() - t_start
         lines = []
         lines.append("=" * 60)
@@ -460,7 +498,7 @@ class ChangeDetectionService:
         lines.append(f"切片尺寸: {tile_size}x{tile_size}, 步长={stride}")
         lines.append("")
         if bounds:
-            lines.append(f"重叠区域: {bounds[2]-bounds[0]:.1f}m x {bounds[3]-bounds[1]:.1f}m")
+            lines.append(f"重叠区域: {bounds[2] - bounds[0]:.1f}m x {bounds[3] - bounds[1]:.1f}m")
         lines.append(f"影像像素: {arr1.shape[1]}x{arr1.shape[0]}")
         lines.append("")
         lines.append(f"基期检测建筑物: {len(det1)}")
